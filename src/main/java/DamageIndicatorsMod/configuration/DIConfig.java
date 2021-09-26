@@ -28,7 +28,7 @@ public class DIConfig {
     public boolean enablePotionEffects = true;
     public int mouseoverRange = 30;
     public int healColor = 65280;
-    public int portraitLifetime = 160;
+    public int portraitLifetime = 1600;
     public int locX = 15;
     public int locY = 15;
     public boolean lockPosition = true;

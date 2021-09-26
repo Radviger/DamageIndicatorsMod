@@ -91,12 +91,12 @@ public class AdvancedGui extends GuiScreen {
     }
 
     @Override
-    protected void mouseClicked(int par1, int par2, int par3) throws IOException {
+    protected void mouseClicked(int mouseX, int mouseY, int button) throws IOException {
         for (GuiTextField gtf : this.textboxes) {
-            gtf.mouseClicked(par1, par2, par3);
+            gtf.mouseClicked(mouseX, mouseY, button);
         }
 
-        this.search.mouseClicked(par1, par2, par3);
+        this.search.mouseClicked(mouseX, mouseY, button);
         if (this.search.isFocused()) {
             if ("Search...".equals(this.search.getText())) {
                 this.search.setText("");
@@ -105,18 +105,18 @@ public class AdvancedGui extends GuiScreen {
             this.search.setText("Search...");
         }
 
-        super.mouseClicked(par1, par2, par3);
+        super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    protected void keyTyped(char par1, int par2) throws IOException {
+    protected void keyTyped(char symbol, int key) throws IOException {
         for (GuiTextField ec : this.textboxes) {
-            ec.textboxKeyTyped(par1, par2);
+            ec.textboxKeyTyped(symbol, key);
         }
 
         if (this.search.isFocused()) {
             this.guiEntityList.visibleEntities.clear();
-            this.search.textboxKeyTyped(par1, par2);
+            this.search.textboxKeyTyped(symbol, key);
             if (!"".equals(this.search.getText())) {
                 this.entrySelected = false;
                 this.guiEntityList.selectedEntry = 0;
@@ -139,7 +139,7 @@ public class AdvancedGui extends GuiScreen {
             }
         }
 
-        super.keyTyped(par1, par2);
+        super.keyTyped(symbol, key);
     }
 
     public void createTooltips() {
@@ -187,7 +187,7 @@ public class AdvancedGui extends GuiScreen {
     }
 
     @Override
-    public void drawScreen(int par1, int par2, float par3) {
+    public void drawScreen(int mouseX, int mouseY, float elapsedTime) {
         if (this.lasttime == 0L) {
             this.lasttime = System.nanoTime();
         }
@@ -195,7 +195,7 @@ public class AdvancedGui extends GuiScreen {
         double diff = (double) (System.nanoTime() - this.lasttime) / 1000000.0D;
         this.lasttime = System.nanoTime();
         this.drawBackground(2);
-        this.guiEntityList.drawScreen(par1, par2, par3);
+        this.guiEntityList.drawScreen(mouseX, mouseY, elapsedTime);
         boolean found = false;
         this.search.drawTextBox();
         if (this.entrySelected) {
@@ -259,8 +259,8 @@ public class AdvancedGui extends GuiScreen {
                 headPosX += (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH) / 2.0F;
                 float headPosY = 175.0F;
                 headPosY += (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWY) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDHEIGHT) / 2.0F;
-                headPosX = (float) par1 - headPosX;
-                headPosY = (float) par2 - headPosY;
+                headPosX = (float) mouseX - headPosX;
+                headPosY = (float) mouseY - headPosY;
                 float f2 = this.tempMob.renderYawOffset;
                 float f3 = this.tempMob.rotationYaw;
                 float f4 = this.tempMob.rotationPitch;
@@ -285,14 +285,14 @@ public class AdvancedGui extends GuiScreen {
             this.zLevel += 0.1F;
             DIConfig.mainInstance().guiScale = var16;
             GL11.glPopMatrix();
-            super.drawScreen(par1, par2, par3);
+            super.drawScreen(mouseX, mouseY, elapsedTime);
             GL11.glPopMatrix();
 
             try {
                 if (this.controlLocations != null) {
                     for (int lines = 0; lines < this.controlLocations.size(); ++lines) {
                         try {
-                            if (this.controlLocations.get(lines).contains(par1, par2)) {
+                            if (this.controlLocations.get(lines).contains(mouseX, mouseY)) {
                                 found = true;
                                 int ex = 0;
                                 if (this.controlLocations.get(lines) != null && (this.LastHovered == null || this.LastHovered != this.controlLocations.get(lines))) {
@@ -316,7 +316,7 @@ public class AdvancedGui extends GuiScreen {
                                 ex = MathHelper.floor((float) ex * 0.75F);
                                 this.tooltip.setGlobalAlpha(ex);
                                 this.tooltip.HEIGHT = this.controlTooltipText.get(lines).length * (this.fontRenderer.FONT_HEIGHT + 2) + 6;
-                                this.tooltip.setUpForDraw(par1, par2, this.controlTooltipText.get(lines));
+                                this.tooltip.setUpForDraw(mouseX, mouseY, this.controlTooltipText.get(lines));
                                 this.tooltip.setDontUseTexture();
                                 this.tooltip.drawStrings(this.fontRenderer);
                                 break;
@@ -348,10 +348,10 @@ public class AdvancedGui extends GuiScreen {
     }
 
     @Override
-    protected void actionPerformed(GuiButton par1GuiButton) throws IOException {
+    protected void actionPerformed(GuiButton button) throws IOException {
         EntityConfigurationEntry current = this.guiEntityList.visibleEntities.get(this.selectedEntry);
-        if (par1GuiButton instanceof GuiCheckBox) {
-            ((GuiCheckBox) par1GuiButton).toggle();
+        if (button instanceof GuiCheckBox) {
+            ((GuiCheckBox) button).toggle();
         } else {
             for (GuiTextField textbox : this.textboxes) {
                 if (textbox != this.textboxes.get(5)) {
@@ -364,7 +364,7 @@ public class AdvancedGui extends GuiScreen {
             }
         }
 
-        EntityConfigurationEntry newEce1 = new EntityConfigurationEntry(current.Clazz, Float.parseFloat(this.textboxes.get(0).getText()), Float.parseFloat(this.textboxes.get(1).getText()), Float.parseFloat(this.textboxes.get(2).getText()), Float.parseFloat(this.textboxes.get(3).getText()), Float.parseFloat(this.textboxes.get(4).getText()), ((GuiCheckBox) this.buttonList.get(1)).isChecked(), this.textboxes.get(5).getText(), ((GuiCheckBox) this.buttonList.get(0)).isChecked(), current.maxHP, current.eyeHeight, ((GuiCheckBox) this.buttonList.get(3)).isChecked());
+        EntityConfigurationEntry newEce1 = new EntityConfigurationEntry(current.Clazz, Float.parseFloat(this.textboxes.get(0).getText()), Float.parseFloat(this.textboxes.get(1).getText()), Float.parseFloat(this.textboxes.get(2).getText()), Float.parseFloat(this.textboxes.get(3).getText()), Float.parseFloat(this.textboxes.get(4).getText()), ((GuiCheckBox) this.buttonList.get(1)).isChecked(), this.textboxes.get(5).getText(), ((GuiCheckBox) this.buttonList.get(0)).isChecked(), current.maxHP, current.eyeHeight);
         if (!current.equals(newEce1)) {
             Tools.getInstance().getEntityMap().put(newEce1.Clazz, newEce1);
             EntityConfigurationEntry.saveEntityConfig(newEce1);
@@ -373,7 +373,7 @@ public class AdvancedGui extends GuiScreen {
             this.guiEntityList.visibleEntities.set(this.selectedEntry, newEce1);
         }
 
-        super.actionPerformed(par1GuiButton);
+        super.actionPerformed(button);
     }
 
     public FontRenderer getFontRenderer() {

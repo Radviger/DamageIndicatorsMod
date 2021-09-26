@@ -51,16 +51,9 @@ public class DIEventBus {
     public static double tick = 0.0D;
     public static int updateSkip = 4;
     static Entity last;
-    private static long time = -1L;
     double count = 5.0D;
 
-    public static void updateMouseOversSkinned(float ticks) {
-        if (time == -1L) {
-            time = System.nanoTime();
-        }
-
-        double elapsedTime = (double) (System.nanoTime() - time) / 1.0E7D;
-        time = System.nanoTime();
+    public static void updateMouseOversSkinned(float elapsedTime) {
         if (Minecraft.getMinecraft().player != null) {
             EntityLivingBase el = null;
             if (updateSkip-- <= 0) {
@@ -155,9 +148,9 @@ public class DIEventBus {
 
                 if (Name != null && !"".equals(Name)) {
                     if (el.isChild() && configentry.AppendBaby) {
-                        Name = "§oBaby " + Name;
+                        Name = "\u00a7oBaby " + Name;
                     } else {
-                        Name = "§o" + Name;
+                        Name = "\u00a7o" + Name;
                     }
                 } else {
                     Name = el.getName();
@@ -209,15 +202,6 @@ public class DIEventBus {
 
     @SubscribeEvent
     public void onLivingUpdateEvent(LivingDeathEvent evt) {
-    }
-
-    @SubscribeEvent
-    public void onLivingUpdateEvent(LivingUpdateEvent evt) {
-        EntityConfigurationEntry configentry = Tools.getInstance().getEntityMap().get(evt.getEntityLiving().getClass());
-        if (configentry != null && configentry.DisableMob) {
-            evt.getEntityLiving().setDead();
-        }
-
     }
 
     private void updateHealth(EntityLivingBase el, int currentHealth) {
@@ -378,7 +362,7 @@ public class DIEventBus {
                     }
 
                     try {
-                        updateMouseOversSkinned(0.5F);
+                        updateMouseOversSkinned(event.getPartialTicks());
                     } catch (Throwable var9) {
                         var9.printStackTrace();
                     }
