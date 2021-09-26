@@ -1,0 +1,18 @@
+#Damage Indicators Language File
+mod.damageindicatorsmod.name=Индикаторы урона
+
+translation.particle.critical=Критический!
+translation.gui.damagecolor=Цвет урона
+translation.gui.healcolor=Цвет регенерации
+translation.gui.dragme=<Перетяни меня>
+translation.gui.optperfdecrease=Эта опция может ухудшить производительность.
+translation.gui.enableportrait=Включить портрет
+translation.gui.enablepotioneffects=Включить эффекты зелий
+translation.gui.enablepopoffs=Включить PopOffs
+translation.gui.selectskin=Выбрать обложку...
+translation.gui.advanced=Дополнительно
+translation.gui.alternaterendermethod=Альтернативный метод отрисовки
+translation.gui.guiscale=Масштаб интерфейса
+translation.gui.highcomprendering=Высокосовместимый метод отрисовки
+
+key.portaitreposition=Меню перемещения портрета
