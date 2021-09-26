@@ -390,8 +390,6 @@ public class AdvancedGui extends GuiScreen {
         this.buttonList.add(1, new GuiCheckBox(1, 220 - (this.fontRenderer.getStringWidth("Prefix Babies") + 12), 96, this.fontRenderer.getStringWidth("Prefix Babies") + 12, 12, "Prefix Babies"));
         ((GuiCheckBox) this.buttonList.get(1)).setChecked(this.guiEntityList.visibleEntities.get(index).AppendBaby);
         this.buttonList.add(2, new GuiButton(2, 315, 186, 80, 20, "Save"));
-        this.buttonList.add(3, new GuiCheckBox(0, 220 - (this.fontRenderer.getStringWidth("Disable Mob") + 12) + 100, 14, this.fontRenderer.getStringWidth("Disable Mob") + 12, 12, "Disable Mob"));
-        ((GuiCheckBox) this.buttonList.get(3)).setChecked(this.guiEntityList.visibleEntities.get(index).DisableMob);
         this.addTextBoxes(index);
         String Name = this.guiEntityList.visibleEntities.get(index).NameOverride != null ? this.guiEntityList.visibleEntities.get(index).NameOverride : "";
 
