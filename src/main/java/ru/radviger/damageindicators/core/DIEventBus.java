@@ -275,7 +275,7 @@ public class DIEventBus {
             if (el.isDead) {
                 potionEffects.remove(entityId);
                 healths.remove(entityId);
-                enemies.remove(entityId);
+                enemies.remove((Object)entityId);
             }
         }
 
