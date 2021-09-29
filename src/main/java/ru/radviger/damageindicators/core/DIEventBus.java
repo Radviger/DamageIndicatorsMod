@@ -235,7 +235,7 @@ public class DIEventBus {
         Integer entityID = evt.getEntity().getEntityId();
         potionEffects.remove(entityID);
         healths.remove(entityID);
-        enemies.remove(entityID);
+        enemies.remove((Object)entityID);
     }
 
     @SubscribeEvent
@@ -247,7 +247,7 @@ public class DIEventBus {
         if (entity.isDead) {
             potionEffects.remove(entityId);
             healths.remove(entityId);
-            enemies.remove(entityId);
+            enemies.remove((Object)entityId);
         }
     }
 
