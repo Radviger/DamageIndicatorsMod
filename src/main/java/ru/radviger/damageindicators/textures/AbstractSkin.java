@@ -34,20 +34,20 @@ public abstract class AbstractSkin {
         }
 
         int height = nonpoweroftwo.getHeight();
-        int scaledheight = height;
+        int scaledHeight = height;
         if (!isPowerOfTwoFast(height)) {
-            scaledheight = upperPowerOfTwo(height);
+            scaledHeight = upperPowerOfTwo(height);
         }
 
         BufferedImage resized;
-        if (width == scaledwidth && height == scaledheight) {
+        if (width == scaledwidth && height == scaledHeight) {
             resized = nonpoweroftwo;
         } else {
             try {
-                resized = new BufferedImage(scaledwidth, scaledheight, nonpoweroftwo.getType());
+                resized = new BufferedImage(scaledwidth, scaledHeight, nonpoweroftwo.getType());
             } catch (Throwable t) {
                 t.printStackTrace();
-                resized = new BufferedImage(scaledwidth, scaledheight, 5);
+                resized = new BufferedImage(scaledwidth, scaledHeight, 5);
             }
 
             Graphics2D graphics = resized.createGraphics();
@@ -55,7 +55,7 @@ public abstract class AbstractSkin {
             graphics.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
             graphics.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
             graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            graphics.drawImage(nonpoweroftwo, 0, 0, scaledwidth, scaledheight, 0, 0, width, height, null);
+            graphics.drawImage(nonpoweroftwo, 0, 0, scaledwidth, scaledHeight, 0, 0, width, height, null);
             graphics.dispose();
         }
 
@@ -174,46 +174,34 @@ public abstract class AbstractSkin {
 
     protected final void loadConfig(Configuration config) {
         config.load();
-        String strKey;
-        Iterator var3 = EnumSet.allOf(EnumSkinPart.class).iterator();
 
-        while (true) {
-            EnumSkinPart enumSkinPart;
-            String spName;
-            do {
-                if (!var3.hasNext()) {
-                    this.skinMap.put(EnumSkinPart.ORDERING, this.populateOrdering(config));
-                    config.save();
-                    return;
-                }
+        for (EnumSkinPart part : EnumSkinPart.values()) {
+            String spName = part.name();
+            String strKey = (String) part.getExtended();
+            if (strKey != null) {
+                Object defaultVal = part.getConfigDefault();
+                String cat;
 
-                enumSkinPart = (EnumSkinPart) var3.next();
-                spName = enumSkinPart.name();
-                strKey = (String) enumSkinPart.getExtended();
-            } while (strKey == null);
-
-            Object defaultVal = enumSkinPart.getConfigDefault();
-            String strCat;
-            if (!spName.endsWith("WIDTH") && !spName.endsWith("HEIGHT")) {
-                if (!spName.endsWith("X") && !spName.endsWith("Y") && !spName.endsWith("OFFSET")) {
-                    if (spName.contains("CONFIGTEXTEXT")) {
-                        strCat = "Skin config.TextSettings";
-                    } else {
-                        strCat = "Skin config.Info";
-                    }
+                if (spName.endsWith("WIDTH") || spName.endsWith("HEIGHT")) {
+                    cat = "Skin config.Sizes";
+                } else if (spName.endsWith("X") || spName.endsWith("Y") || spName.endsWith("OFFSET")) {
+                    cat = "Skin config.Positions";
+                } else if (spName.contains("CONFIGTEXTEXT")) {
+                    cat = "Skin config.TextSettings";
                 } else {
-                    strCat = "Skin config.Positions";
+                    cat = "Skin config.Info";
                 }
-            } else {
-                strCat = "Skin config.Sizes";
-            }
 
-            if (defaultVal instanceof Integer) {
-                this.skinMap.put(enumSkinPart, config.get(strCat, strKey, (Integer) defaultVal).getInt((Integer) defaultVal));
-            } else {
-                this.skinMap.put(enumSkinPart, config.get(strCat, strKey, (String) defaultVal).getString());
+                if (defaultVal instanceof Integer) {
+                    this.skinMap.put(part, config.get(cat, strKey, (Integer) defaultVal).getInt((Integer) defaultVal));
+                } else {
+                    this.skinMap.put(part, config.get(cat, strKey, (String) defaultVal).getString());
+                }
             }
         }
+
+        this.skinMap.put(EnumSkinPart.ORDERING, this.populateOrdering(config));
+        config.save();
     }
 
     public abstract void loadSkin();

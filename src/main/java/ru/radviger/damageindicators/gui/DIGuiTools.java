@@ -135,7 +135,7 @@ public class DIGuiTools extends GuiIngame {
     }
 
     public static void drawMobPreview(EntityLivingBase el, AbstractSkin skin, int locX, int locY) {
-        GL11.glPushAttrib(8192);
+        GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
         int backgroundWidth = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH);
         int backgroundHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDHEIGHT);
         int MobPreviewOffsetX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX);
@@ -153,7 +153,7 @@ public class DIGuiTools extends GuiIngame {
             }
 
             GL11.glScissor(ex, Minecraft.getMinecraft().displayHeight - boxLocY - boxHeight, boxWidth, boxHeight);
-            drawTargettedMobPreview(el, locX + MobPreviewOffsetX, locY + MobPreviewOffsetY);
+            drawTargetedMobPreview(el, locX + MobPreviewOffsetX, locY + MobPreviewOffsetY);
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -220,7 +220,7 @@ public class DIGuiTools extends GuiIngame {
         GlStateManager.color(1F, 1F, 1F, 1F);
     }
 
-    public static void DrawPortraitSkinned(int locX, int locY, String Name, int health, int maxHealth, EntityLivingBase el) {
+    public static void drawPortraitSkinned(int locX, int locY, String Name, int health, int maxHealth, EntityLivingBase el) {
         scaledresolution = new ScaledResolution(mc);
         int depthFun = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
         boolean depthTest = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
@@ -369,26 +369,26 @@ public class DIGuiTools extends GuiIngame {
         }
     }
 
-    public static void drawTargettedMobPreview(EntityLivingBase el, int locX, int locY) {
+    public static void drawTargetedMobPreview(EntityLivingBase el, int locX, int locY) {
         IndicatorsConfig config = IndicatorsConfig.mainInstance();
         Class<? extends EntityLivingBase> cls = el.getClass();
         EntityConfigurationEntry entry = Tools.getInstance().getEntityMap().get(cls);
         if (entry == null) {
-            Configuration configfile = EntityConfigurationEntry.getEntityConfiguration();
-            entry = EntityConfigurationEntry.generateDefaultConfiguration(configfile, cls);
+            Configuration cfg = EntityConfigurationEntry.getEntityConfiguration();
+            entry = EntityConfigurationEntry.generateDefaultConfiguration(cfg, cls);
             entry.save();
             Tools.getInstance().getEntityMap().put(cls, entry);
         }
 
         GlStateManager.pushMatrix();
 
-        GlStateManager.translate((float) (locX + 25) + entry.XOffset, (float) (locY + 52) + entry.YOffset, 1.0F);
+        GlStateManager.translate((float) (locX + 25) + entry.offsetX, (float) (locY + 52) + entry.offsetY, 1.0F);
 
         GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
-        float ex = (3.0F - el.getEyeHeight()) * entry.EntitySizeScaling;
-        float finalScale = entry.ScaleFactor + entry.ScaleFactor * ex;
+        float ex = (3.0F - el.getEyeHeight()) * entry.sizeScaling;
+        float finalScale = entry.scale + entry.scale * ex;
         if (el.isChild()) {
-            finalScale = (entry.ScaleFactor + entry.ScaleFactor * ex) * entry.BabyScaleFactor;
+            finalScale = (entry.scale + entry.scale * ex) * entry.babyScale;
         }
 
         GlStateManager.scale(finalScale * 0.85F, finalScale * 0.85F, 0.1F);
@@ -414,7 +414,7 @@ public class DIGuiTools extends GuiIngame {
             el.hurtTime = 0;
             GlStateManager.rotate(180.0F - Minecraft.getMinecraft().player.rotationYaw, 0.0F, -1.0F, 0.0F);
             GlStateManager.color(1F, 1F, 1F, 1F);
-            GlStateManager.popMatrix();
+            GlStateManager.pushMatrix();
 
             try {
                 renderEntity(el);

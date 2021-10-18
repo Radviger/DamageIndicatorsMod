@@ -53,31 +53,31 @@ public class GuiEntityList extends GuiScrollingList {
     @Override
     protected void drawSlot(int listIndex, int var2, int var3, int var4, Tessellator var5) {
         Map<Class<? extends Entity>, String> classToStringMapping = Tools.getEntityList();
-        String entryName = classToStringMapping.get(this.visibleEntities.get(listIndex).Clazz);
-        if (this.visibleEntities.get(listIndex).NameOverride != null && !"".equals(this.visibleEntities.get(listIndex).NameOverride)) {
-            entryName = this.visibleEntities.get(listIndex).NameOverride;
+        String entryName = classToStringMapping.get(this.visibleEntities.get(listIndex).clazz);
+        if (this.visibleEntities.get(listIndex).nameOverride != null && !"".equals(this.visibleEntities.get(listIndex).nameOverride)) {
+            entryName = this.visibleEntities.get(listIndex).nameOverride;
         } else if (entryName == null || "".equals(entryName)) {
-            String[] ModName = this.visibleEntities.get(listIndex).Clazz.getName().split("\\.");
+            String[] ModName = this.visibleEntities.get(listIndex).clazz.getName().split("\\.");
             if (ModName.length > 0) {
                 entryName = ModName[ModName.length - 1];
             } else {
-                entryName = this.visibleEntities.get(listIndex).Clazz.getName();
+                entryName = this.visibleEntities.get(listIndex).clazz.getName();
             }
         }
 
-        if (this.visibleEntities.get(listIndex).Clazz == EntityOtherPlayerMP.class) {
+        if (this.visibleEntities.get(listIndex).clazz == EntityOtherPlayerMP.class) {
             entryName = "Other Player";
-        } else if (this.visibleEntities.get(listIndex).Clazz == EntityMob.class) {
+        } else if (this.visibleEntities.get(listIndex).clazz == EntityMob.class) {
             this.visibleEntities.remove(listIndex);
-        } else if (this.visibleEntities.get(listIndex).Clazz == EntityLivingBase.class) {
+        } else if (this.visibleEntities.get(listIndex).clazz == EntityLivingBase.class) {
             this.visibleEntities.remove(listIndex);
-        } else if (this.visibleEntities.get(listIndex).Clazz == EntityLiving.class) {
+        } else if (this.visibleEntities.get(listIndex).clazz == EntityLiving.class) {
             this.visibleEntities.remove(listIndex);
         }
 
         this.parent.getFontRenderer().drawString(this.parent.getFontRenderer().trimStringToWidth(entryName, this.listWidth - 10), this.left + 3, var3 + 2, 16777215);
         String ModName1 = "Vanilla/Unknown Mod";
-        EntityRegistration er = EntityRegistry.instance().lookupModSpawn(this.visibleEntities.get(listIndex).Clazz, true);
+        EntityRegistration er = EntityRegistry.instance().lookupModSpawn(this.visibleEntities.get(listIndex).clazz, true);
         if (er != null) {
             ModName1 = er.getContainer().getName();
         }

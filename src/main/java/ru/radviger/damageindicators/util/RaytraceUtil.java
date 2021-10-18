@@ -16,51 +16,44 @@ public class RaytraceUtil {
     }
 
     public static double getClosestSolidWall(EntityLivingBase viewEntity, Vec3d startPosition, double traceDistance, int count, double offset) {
-        if (count++ <= 20 && !(traceDistance - offset <= 0.0D)) {
-            Vec3d vec31 = viewEntity.getLookVec();
-            Vec3d vec32 = startPosition.add(vec31.x * (traceDistance - offset), vec31.y * (traceDistance - offset), vec31.z * (traceDistance - offset));
-            RayTraceResult objectMouseOver = viewEntity.world.rayTraceBlocks(startPosition, vec32, false, false, true);
-            if (objectMouseOver != null) {
-                IBlockState bs = viewEntity.world.getBlockState(objectMouseOver.getBlockPos());
+        double distance = traceDistance - offset;
+        if (count++ <= 20 && distance > 0) {
+            Vec3d look = viewEntity.getLookVec();
+            Vec3d end = startPosition.add(look.x * distance, look.y * distance, look.z * distance);
+            RayTraceResult target = viewEntity.world.rayTraceBlocks(startPosition, end, false, false, true);
+            if (target != null && target.typeOfHit == RayTraceResult.Type.BLOCK) {
+                IBlockState bs = viewEntity.world.getBlockState(target.getBlockPos());
                 Block block = bs.getBlock();
-                if (block != null) {
-                    if (block.getClass().getName().contains("BlockFrame")) {
-                        return objectMouseOver.hitVec.distanceTo(new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ));
-                    }
 
-                    if (bs.isOpaqueCube() && !block.isAir(bs, viewEntity.world, objectMouseOver.getBlockPos())) {
-                        return objectMouseOver.hitVec.distanceTo(new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ));
-                    }
-
-                    return getClosestSolidWall(viewEntity, objectMouseOver.hitVec.add(vec31.x, vec31.y, vec31.z), traceDistance, count, objectMouseOver.hitVec.distanceTo(startPosition));
+                if (bs.isOpaqueCube() && !block.isAir(bs, viewEntity.world, target.getBlockPos())) {
+                    return target.hitVec.distanceTo(new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ));
                 }
-            }
 
-            return traceDistance;
-        } else {
-            return traceDistance;
+                return getClosestSolidWall(viewEntity, target.hitVec.add(look.x, look.y, look.z), traceDistance, count, target.hitVec.distanceTo(startPosition));
+            }
         }
+        return traceDistance;
     }
 
-    public static RayTraceResult rayTrace(EntityLivingBase viewEntity, double p_70614_1_) {
-        Vec3d vec3 = new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ);
-        Vec3d vec31 = viewEntity.getLookVec();
-        Vec3d vec32 = vec3.add(vec31.x * p_70614_1_, vec31.y * p_70614_1_, vec31.z * p_70614_1_);
-        return viewEntity.world.rayTraceBlocks(vec3, vec32, false, false, true);
+    public static RayTraceResult rayTrace(EntityLivingBase viewEntity, double distance) {
+        Vec3d start = new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ);
+        Vec3d look = viewEntity.getLookVec();
+        Vec3d end = start.add(look.x * distance, look.y * distance, look.z * distance);
+        return viewEntity.world.rayTraceBlocks(start, end, false, false, true);
     }
 
     public static boolean isLookingAt(EntityLivingBase viewEntity, double parDistance, float tick, Entity entity) {
         parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
         if (viewEntity != null) {
-            World worldObj = viewEntity.world;
+            World world = viewEntity.world;
             RayTraceResult objectMouseOver = rayTrace(viewEntity, parDistance);
             if (objectMouseOver != null) {
                 parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
             }
 
             Vec3d dirVec = viewEntity.getLookVec();
-            List targettedEntities = worldObj.getEntitiesWithinAABB(Entity.class, viewEntity.getEntityBoundingBox().expand(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance));
-            return targettedEntities.contains(entity);
+            List<Entity> targetedEntities = world.getEntitiesWithinAABB(Entity.class, viewEntity.getEntityBoundingBox().expand(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance));
+            return targetedEntities.contains(entity);
         } else {
             return false;
         }
@@ -103,9 +96,9 @@ public class RaytraceUtil {
         double distance = parDistance;
         if (viewEntity != null) {
             World world = viewEntity.world;
-            RayTraceResult objectMouseOver = rayTrace(viewEntity, parDistance);
+            RayTraceResult target = rayTrace(viewEntity, parDistance);
             Vec3d playerPosition = new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ);
-            if (objectMouseOver != null) {
+            if (target != null) {
                 parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
             }
 

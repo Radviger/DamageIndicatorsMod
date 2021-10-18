@@ -15,7 +15,7 @@ import java.util.Set;
 public class Tools {
     private static final Map<Class<? extends Entity>, EntityConfigurationEntry> entityMap = new HashMap<>();
     private static Tools instance;
-    boolean lasttimefailed = false;
+    boolean lastFailed = false;
 
     public static Tools getInstance() {
         if (instance == null) {
@@ -58,12 +58,12 @@ public class Tools {
 
     private void searchMapForEntities(Map<Class<? extends Entity>, String> theMap) {
         Configuration config = EntityConfigurationEntry.getEntityConfiguration();
-        this.lasttimefailed = false;
+        this.lastFailed = false;
         Set<Class<? extends Entity>> set = theMap.keySet();
 
         for (Class<? extends Entity> entry : set) {
             if (entry != null && EntityLiving.class.isAssignableFrom(entry)) {
-                entityMap.put(entry, EntityConfigurationEntry.generateDefaultConfiguration(config, entry));
+                entityMap.put(entry, EntityConfigurationEntry.generateDefaultConfiguration(config, (Class<? extends EntityLiving>) entry));
             }
         }
 

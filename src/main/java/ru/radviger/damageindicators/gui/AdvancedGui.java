@@ -74,14 +74,14 @@ public class AdvancedGui extends GuiScreen {
 
         while (it.hasNext()) {
             EntityConfigurationEntry ece = (EntityConfigurationEntry) it.next();
-            if (EntityPlayer.class.isAssignableFrom(ece.Clazz)) {
+            if (EntityPlayer.class.isAssignableFrom(ece.clazz)) {
                 it.remove();
             }
         }
 
         GuiEntityList.entities.sort(this.comparator);
         this.guiEntityList = new GuiEntityList(this.mc, 120, this.height, 16, this.height - 16, 10, 25, this);
-        this.fontRenderer.drawStringWithShadow(GuiEntityList.entities.get(this.selectedEntry).Clazz.getName(), 225.0F, 160.0F, 10066431);
+        this.fontRenderer.drawStringWithShadow(GuiEntityList.entities.get(this.selectedEntry).clazz.getName(), 225.0F, 160.0F, 10066431);
         this.tooltip = new GuiToolTip(this, this.tooltipWidth, this.tooltipHeight);
         this.tooltip.setCenterVertically(true);
         this.tooltip.setCentered(true);
@@ -124,14 +124,14 @@ public class AdvancedGui extends GuiScreen {
 
                 for (EntityConfigurationEntry ec1 : GuiEntityList.entities) {
                     Map<Class<? extends Entity>, String> classToStringMapping = Tools.getEntityList();
-                    if (ec1.Clazz.getName().toLowerCase().contains(this.search.getText().toLowerCase())) {
+                    if (ec1.clazz.getName().toLowerCase().contains(this.search.getText().toLowerCase())) {
                         this.guiEntityList.visibleEntities.add(ec1);
-                    } else if (classToStringMapping.containsKey(ec1.Clazz)) {
-                        String temp = classToStringMapping.get(ec1.Clazz).toLowerCase();
+                    } else if (classToStringMapping.containsKey(ec1.clazz)) {
+                        String temp = classToStringMapping.get(ec1.clazz).toLowerCase();
                         if (temp.contains(this.search.getText().toLowerCase())) {
                             this.guiEntityList.visibleEntities.add(ec1);
                         }
-                    } else if (ec1.NameOverride.toLowerCase().contains(this.search.getText().toLowerCase())) {
+                    } else if (ec1.nameOverride.toLowerCase().contains(this.search.getText().toLowerCase())) {
                         this.guiEntityList.visibleEntities.add(ec1);
                     }
                 }
@@ -162,7 +162,7 @@ public class AdvancedGui extends GuiScreen {
         this.controlTooltipText.add(new String[]{"Replace name with this text."});
         this.controlLocations.add(new Rectangle(220 - this.fontRenderer.getStringWidth("Full Class Name"), 160, this.fontRenderer.getStringWidth("Full Class Name"), this.fontRenderer.FONT_HEIGHT));
         this.controlTooltipText.add(new String[]{"Full Class Path For Debugging."});
-        this.controlLocations.add(new Rectangle(225, 160, this.fontRenderer.getStringWidth(this.guiEntityList.visibleEntities.get(this.selectedEntry).Clazz.getName()), this.fontRenderer.FONT_HEIGHT));
+        this.controlLocations.add(new Rectangle(225, 160, this.fontRenderer.getStringWidth(this.guiEntityList.visibleEntities.get(this.selectedEntry).clazz.getName()), this.fontRenderer.FONT_HEIGHT));
         this.controlTooltipText.add(new String[]{"Full Class Path For Debugging."});
         this.controlLocations.add(new Rectangle(220 - (this.fontRenderer.getStringWidth("Prefix Babies") + 12), 96, this.fontRenderer.getStringWidth("Prefix Babies") + 12, 12));
         this.controlTooltipText.add(new String[]{"Prefix names with baby if a baby."});
@@ -209,7 +209,7 @@ public class AdvancedGui extends GuiScreen {
                     }
 
                     try {
-                        this.tempMob = (EntityLivingBase) this.ece.Clazz.getConstructor(World.class).newInstance(this.mc.world);
+                        this.tempMob = (EntityLivingBase) this.ece.clazz.getConstructor(World.class).newInstance(this.mc.world);
                     } catch (InstantiationException e) {
                         this.tempMob = null;
                     }
@@ -225,7 +225,7 @@ public class AdvancedGui extends GuiScreen {
             this.fontRenderer.drawStringWithShadow("Baby Scaling:", (float) (220 - this.fontRenderer.getStringWidth("Baby Scaling")), 112.0F, 16777215);
             this.fontRenderer.drawStringWithShadow("Name Override:", (float) (220 - this.fontRenderer.getStringWidth("Name Override")), 144.0F, 16777215);
             this.fontRenderer.drawStringWithShadow("Full Class Name:", (float) (220 - this.fontRenderer.getStringWidth("Full Class Name")), 160.0F, 16777215);
-            this.fontRenderer.drawStringWithShadow(this.guiEntityList.visibleEntities.get(this.selectedEntry).Clazz.getName(), 225.0F, 160.0F, 10066431);
+            this.fontRenderer.drawStringWithShadow(this.guiEntityList.visibleEntities.get(this.selectedEntry).clazz.getName(), 225.0F, 160.0F, 10066431);
 
             for (GuiTextField transparency : this.textboxes) {
                 transparency.drawTextBox();
@@ -236,24 +236,24 @@ public class AdvancedGui extends GuiScreen {
                 this.ece = this.guiEntityList.visibleEntities.get(this.selectedEntry);
             }
 
-            String var14 = this.ece.NameOverride;
+            String var14 = this.ece.nameOverride;
             if (this.tempMob != null) {
                 if (var14 == null || "".equals(var14)) {
                     var14 = this.tempMob.getName();
                 }
             } else if (var14 == null || "".equals(var14)) {
                 Map<Class<? extends Entity>, String> classToStringMapping = Tools.getEntityList();
-                if (classToStringMapping.containsKey(this.ece.Clazz)) {
-                    var14 = classToStringMapping.get(this.ece.Clazz);
+                if (classToStringMapping.containsKey(this.ece.clazz)) {
+                    var14 = classToStringMapping.get(this.ece.clazz);
                 } else {
-                    var14 = this.ece.Clazz.getName().substring(this.ece.Clazz.getName().lastIndexOf(".") + 1);
+                    var14 = this.ece.clazz.getName().substring(this.ece.clazz.getName().lastIndexOf(".") + 1);
                 }
             }
 
             this.zLevel += 0.1F;
             GlStateManager.pushMatrix();
             float var16 = IndicatorsConfig.mainInstance().guiScale;
-            GL11.glPushAttrib(8192);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
 
             try {
                 float headPosX = 150.0F;
@@ -273,7 +273,7 @@ public class AdvancedGui extends GuiScreen {
                 this.tempMob.rotationYawHead = this.tempMob.rotationYaw;
                 this.tempMob.prevRotationYawHead = this.tempMob.rotationYaw;
                 IndicatorsConfig.mainInstance().guiScale = 1.0F;
-                DIGuiTools.DrawPortraitSkinned(150, 175, var14, (int) Math.ceil(this.tempMob == null ? 0.0D : (double) this.tempMob.getHealth()), (int) Math.ceil(this.tempMob == null ? 0.0D : (double) this.tempMob.getMaxHealth()), this.tempMob);
+                DIGuiTools.drawPortraitSkinned(150, 175, var14, (int) Math.ceil(this.tempMob == null ? 0.0D : (double) this.tempMob.getHealth()), (int) Math.ceil(this.tempMob == null ? 0.0D : (double) this.tempMob.getMaxHealth()), this.tempMob);
                 this.tempMob.renderYawOffset = f2;
                 this.tempMob.rotationYaw = f3;
                 this.tempMob.rotationPitch = f4;
@@ -368,9 +368,9 @@ public class AdvancedGui extends GuiScreen {
             }
         }
 
-        EntityConfigurationEntry newEce1 = new EntityConfigurationEntry(current.Clazz, Float.parseFloat(this.textboxes.get(0).getText()), Float.parseFloat(this.textboxes.get(1).getText()), Float.parseFloat(this.textboxes.get(2).getText()), Float.parseFloat(this.textboxes.get(3).getText()), Float.parseFloat(this.textboxes.get(4).getText()), ((GuiCheckBox) this.buttonList.get(1)).isChecked(), this.textboxes.get(5).getText(), ((GuiCheckBox) this.buttonList.get(0)).isChecked(), current.maxHP, current.eyeHeight);
+        EntityConfigurationEntry newEce1 = new EntityConfigurationEntry(current.clazz, Float.parseFloat(this.textboxes.get(0).getText()), Float.parseFloat(this.textboxes.get(1).getText()), Float.parseFloat(this.textboxes.get(2).getText()), Float.parseFloat(this.textboxes.get(3).getText()), Float.parseFloat(this.textboxes.get(4).getText()), this.textboxes.get(5).getText(), ((GuiCheckBox) this.buttonList.get(0)).isChecked(), current.maxHP, current.eyeHeight);
         if (!current.equals(newEce1)) {
-            Tools.getInstance().getEntityMap().put(newEce1.Clazz, newEce1);
+            Tools.getInstance().getEntityMap().put(newEce1.clazz, newEce1);
             EntityConfigurationEntry.saveEntityConfig(newEce1);
             GuiEntityList.entities = new ArrayList<>(Tools.getInstance().getEntityMap().values());
             GuiEntityList.entities.sort(this.comparator);
@@ -390,27 +390,25 @@ public class AdvancedGui extends GuiScreen {
         this.entrySelected = true;
         this.selectedEntry = index;
         this.buttonList.add(0, new GuiCheckBox(0, 220 - (this.fontRenderer.getStringWidth("Ignore Mob") + 12), 14, this.fontRenderer.getStringWidth("Ignore Mob") + 12, 12, "Ignore Mob"));
-        ((GuiCheckBox) this.buttonList.get(0)).setChecked(this.guiEntityList.visibleEntities.get(index).IgnoreThisMob);
-        this.buttonList.add(1, new GuiCheckBox(1, 220 - (this.fontRenderer.getStringWidth("Prefix Babies") + 12), 96, this.fontRenderer.getStringWidth("Prefix Babies") + 12, 12, "Prefix Babies"));
-        ((GuiCheckBox) this.buttonList.get(1)).setChecked(this.guiEntityList.visibleEntities.get(index).AppendBaby);
-        this.buttonList.add(2, new GuiButton(2, 315, 186, 80, 20, "Save"));
+        ((GuiCheckBox) this.buttonList.get(0)).setChecked(this.guiEntityList.visibleEntities.get(index).ignore);
+        this.buttonList.add(1, new GuiButton(2, 315, 186, 80, 20, "Save"));
         this.addTextBoxes(index);
-        String Name = this.guiEntityList.visibleEntities.get(index).NameOverride != null ? this.guiEntityList.visibleEntities.get(index).NameOverride : "";
+        String Name = this.guiEntityList.visibleEntities.get(index).nameOverride != null ? this.guiEntityList.visibleEntities.get(index).nameOverride : "";
 
         this.textboxes.get(5).setText(Name);
     }
 
     public void addTextBoxes(int listIndex) {
         this.textboxes.add(0, new GuiTextField(0, this.fontRenderer, 225, 30, 120, 10));
-        this.textboxes.get(0).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).ScaleFactor));
+        this.textboxes.get(0).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).scale));
         this.textboxes.add(1, new GuiTextField(1, this.fontRenderer, 225, 46, 120, 10));
-        this.textboxes.get(1).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).XOffset));
+        this.textboxes.get(1).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).offsetX));
         this.textboxes.add(2, new GuiTextField(2, this.fontRenderer, 225, 62, 120, 10));
-        this.textboxes.get(2).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).YOffset));
+        this.textboxes.get(2).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).offsetY));
         this.textboxes.add(3, new GuiTextField(3, this.fontRenderer, 225, 78, 120, 10));
-        this.textboxes.get(3).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).EntitySizeScaling));
+        this.textboxes.get(3).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).sizeScaling));
         this.textboxes.add(4, new GuiTextField(4, this.fontRenderer, 225, 110, 120, 10));
-        this.textboxes.get(4).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).BabyScaleFactor));
+        this.textboxes.get(4).setText(String.valueOf(this.guiEntityList.visibleEntities.get(listIndex).babyScale));
         this.textboxes.add(5, new GuiTextField(5, this.fontRenderer, 225, 142, 120, 10));
     }
 }

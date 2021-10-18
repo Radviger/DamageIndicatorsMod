@@ -190,7 +190,7 @@ public class RepositionGui extends GuiScreen {
             GlStateManager.color(1F, 1F, 1F);
             GlStateManager.translate((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
             GlStateManager.scale(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, 1.0F);
-            GL11.glPushAttrib(8192);
+            GL11.glPushAttrib(GL11.GL_ENABLE_BIT);
             float headPosX = (float) IndicatorsConfig.mainInstance().locX;
             headPosX += ((float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH) / 2.0F) * IndicatorsConfig.mainInstance().guiScale;
             float headPosY = (float) IndicatorsConfig.mainInstance().locY;
@@ -208,7 +208,7 @@ public class RepositionGui extends GuiScreen {
             this.mc.player.rotationYawHead = this.mc.player.rotationYaw;
             this.mc.player.prevRotationYawHead = this.mc.player.rotationYaw;
             Minecraft.getMinecraft().getRenderManager().playerViewY = 180.0F;
-            DIGuiTools.DrawPortraitSkinned(this.config.locX, this.config.locY, this.mc.player.getName(), (int) Math.ceil(this.mc.player.getMaxHealth()), (int) Math.ceil(this.mc.player.getHealth()), this.mc.player);
+            DIGuiTools.drawPortraitSkinned(this.config.locX, this.config.locY, this.mc.player.getName(), (int) Math.ceil(this.mc.player.getMaxHealth()), (int) Math.ceil(this.mc.player.getHealth()), this.mc.player);
             this.mc.player.renderYawOffset = f2;
             this.mc.player.rotationYaw = f3;
             this.mc.player.rotationPitch = f4;

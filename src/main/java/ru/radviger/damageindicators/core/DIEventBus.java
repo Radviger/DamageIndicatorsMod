@@ -1,6 +1,7 @@
 package ru.radviger.damageindicators.core;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.GlStateManager;
@@ -13,7 +14,6 @@ import net.minecraft.entity.projectile.EntityArrow;
 import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.client.event.RenderPlayerEvent.Pre;
 import net.minecraftforge.common.config.Configuration;
@@ -48,86 +48,81 @@ public class DIEventBus {
     public static List<Integer> enemies = new ArrayList<>();
     public static int playerDim = 0;
     public static String playerName = "";
-    public static int LastTargeted = 0;
+    public static int lastTargeted = -1;
     public static boolean searched = false;
     public static double tick = 0.0D;
     public static int updateSkip = 4;
-    static Entity last;
     double count = 5.0D;
 
     public static void updateMouseOversSkinned(float elapsedTime) {
-        if (Minecraft.getMinecraft().player != null) {
+        Minecraft mc = Minecraft.getMinecraft();
+        EntityPlayerSP player = mc.player;
+
+        if (player != null) {
+            IndicatorsConfig config = IndicatorsConfig.mainInstance();
             EntityLivingBase el = null;
             if (updateSkip-- <= 0) {
                 updateSkip = 4;
-                el = RaytraceUtil.getClosestLivingEntity(Minecraft.getMinecraft().player, IndicatorsConfig.mainInstance().mouseoverRange);
+                el = RaytraceUtil.getClosestLivingEntity(player, config.mouseoverRange);
                 if (el != null && el.getHealth() <= 0.0F) {
+                    System.err.println("Skipping dead entity " + el + ": " + el.getHealth());
                     el = null;
-                }
-            }
-
-            if (Minecraft.getMinecraft().player.getName().contains("rich1051414") && Minecraft.getMinecraft().player.isSneaking()) {
-                Entity tmp = RaytraceUtil.getClosestEntity(Minecraft.getMinecraft().player, IndicatorsConfig.mainInstance().mouseoverRange);
-                if (tmp != null && tmp != last) {
-                    last = tmp;
-                    Minecraft.getMinecraft().player.sendMessage(new TextComponentString(tmp.getClass().getName()));
-                    TextTransfer textTransfer = new TextTransfer();
-                    textTransfer.setClipboardContents(tmp.getClass().getName());
                 }
             }
 
             if (el != null) {
-                Class<? extends Entity> entityclass = el.getClass();
-                EntityConfigurationEntry configentry = Tools.getInstance().getEntityMap().get(entityclass);
-                if (configentry == null) {
-                    Configuration configfile = EntityConfigurationEntry.getEntityConfiguration();
-                    configentry = EntityConfigurationEntry.generateDefaultConfiguration(configfile, entityclass);
-                    configentry.save();
-                    Tools.getInstance().getEntityMap().put(entityclass, configentry);
+                Class<? extends EntityLivingBase> clazz = el.getClass();
+                EntityConfigurationEntry entry = Tools.getInstance().getEntityMap().get(clazz);
+                if (entry == null) {
+                    Configuration cfg = EntityConfigurationEntry.getEntityConfiguration();
+                    entry = EntityConfigurationEntry.generateDefaultConfiguration(cfg, clazz);
+                    entry.save();
+                    Tools.getInstance().getEntityMap().put(clazz, entry);
                 }
 
-                if (configentry.IgnoreThisMob) {
+                if (entry.ignore) {
+                    System.err.println("Skipping ignored entity " + el);
                     el = null;
                 } else {
-                    LastTargeted = el.getEntityId();
+                    lastTargeted = el.getEntityId();
                 }
             }
 
-            if (el != null || LastTargeted != 0 && (IndicatorsConfig.mainInstance().portraitLifetime == -1 || tick > 0.0D)) {
-                ScaledResolution scaledresolution = new ScaledResolution(Minecraft.getMinecraft());
-                if (IndicatorsConfig.mainInstance().locX > scaledresolution.getScaledWidth() - 135) {
-                    IndicatorsConfig.mainInstance().locX = scaledresolution.getScaledWidth() - 135;
+            if (el != null || lastTargeted != -1 && (config.portraitLifetime == -1 || tick > 0.0D)) {
+                ScaledResolution resolution = new ScaledResolution(mc);
+                if (config.locX > resolution.getScaledWidth() - 135) {
+                    config.locX = resolution.getScaledWidth() - 135;
                 }
 
-                if (IndicatorsConfig.mainInstance().locY > scaledresolution.getScaledHeight() - 50) {
-                    IndicatorsConfig.mainInstance().locY = scaledresolution.getScaledHeight() - 50;
+                if (config.locY > resolution.getScaledHeight() - 50) {
+                    config.locY = resolution.getScaledHeight() - 50;
                 }
 
-                if (IndicatorsConfig.mainInstance().locX < 0) {
-                    IndicatorsConfig.mainInstance().locX = 0;
+                if (config.locX < 0) {
+                    config.locX = 0;
                 }
 
-                if (IndicatorsConfig.mainInstance().locY < 0) {
-                    IndicatorsConfig.mainInstance().locY = 0;
+                if (config.locY < 0) {
+                    config.locY = 0;
                 }
 
                 GlStateManager.color(1F, 1F, 1F, 1F);
                 if (el == null) {
                     tick -= elapsedTime;
-                    el = (EntityLivingBase) Minecraft.getMinecraft().world.getEntityByID(LastTargeted);
+                    el = (EntityLivingBase) mc.world.getEntityByID(lastTargeted);
 
                     if (el == null) {
-                        LastTargeted = 0;
+                        lastTargeted = -1;
                     }
                 } else {
-                    tick = IndicatorsConfig.mainInstance().portraitLifetime;
+                    tick = config.portraitLifetime;
                 }
 
                 if (el == null) {
                     return;
                 }
 
-                LastTargeted = el.getEntityId();
+                lastTargeted = el.getEntityId();
                 Class<? extends Entity> entityclass = el.getClass();
                 EntityConfigurationEntry configentry = Tools.getInstance().getEntityMap().get(entityclass);
                 if (configentry.maxHP == -1 || configentry.eyeHeight == -1.0F) {
@@ -139,40 +134,22 @@ public class DIEventBus {
                     configentry.maxHP = MathHelper.floor(Math.ceil(el.getMaxHealth()));
                 }
 
-                String Name = configentry.NameOverride;
-                if (el instanceof EntityPlayer) {
-                    Name = el.getName();
-                }
+                String name = el.getName();
 
-                if (Name != null && !"".equals(Name)) {
-                    if (el.isChild() && configentry.AppendBaby) {
-                        Name = "\u00a7oBaby " + Name;
-                    } else {
-                        Name = "\u00a7o" + Name;
-                    }
-                } else {
-                    Name = el.getName();
-                    if (Name.endsWith(".name")) {
-                        Name = Name.replace(".name", "");
-                        Name = Name.substring(Name.lastIndexOf(".") + 1, Name.length());
-                        Name = Name.substring(0, 1).toUpperCase() + Name.substring(1, Name.length());
-                    }
-
-                    if (el.isChild() && configentry.AppendBaby) {
-                        Name = "Baby " + Name;
-                    }
+                if (!(el instanceof EntityPlayer) && configentry.nameOverride != null && !configentry.nameOverride.isEmpty()) {
+                    name = configentry.nameOverride;
                 }
 
                 GlStateManager.pushMatrix();
-                GlStateManager.translate((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
-                GlStateManager.scale(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale);
+                GlStateManager.translate((1.0F - config.guiScale) * (float) config.locX, (1.0F - config.guiScale) * (float) config.locY, 0.0F);
+                GlStateManager.scale(config.guiScale, config.guiScale, config.guiScale);
 
-                DIGuiTools.DrawPortraitSkinned(IndicatorsConfig.mainInstance().locX, IndicatorsConfig.mainInstance().locY, Name, MathHelper.ceil(el.getHealth()), MathHelper.ceil(el.getMaxHealth()), el);
+                DIGuiTools.drawPortraitSkinned(config.locX, config.locY, name, MathHelper.ceil(el.getHealth()), MathHelper.ceil(el.getMaxHealth()), el);
 
                 GlStateManager.popMatrix();
 
                 OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
-                GL11.glDisableClientState(32888); // NANI?
+                GL11.glDisableClientState(GL11.GL_TEXTURE_COORD_ARRAY);
                 OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
                 GlStateManager.color(1F, 1F, 1F, 1F);
             }
@@ -308,9 +285,11 @@ public class DIEventBus {
             KeyBinding.resetKeyBindingArrayAndHash();
         }
 
+        Minecraft mc = Minecraft.getMinecraft();
+
         if (ProxyClient.kb.isPressed()) {
             RepositionGui gui = new RepositionGui();
-            Minecraft.getMinecraft().displayGuiScreen(gui);
+            mc.displayGuiScreen(gui);
         }
 
         boolean flag = IndicatorsConfig.mainInstance().alternateRenderingMethod && event.getType() == ElementType.CHAT;
@@ -322,19 +301,19 @@ public class DIEventBus {
             if (event.isCancelable()) {
                 event.setCanceled(true);
             }
-        } else if (flag && Minecraft.getMinecraft().player != null) {
-            if (Minecraft.getMinecraft().gameSettings.hideGUI) {
-                LastTargeted = 0;
+        } else if (flag && mc.player != null) {
+            if (mc.gameSettings.hideGUI) {
+                lastTargeted = -1;
                 return;
             }
 
-            if (Minecraft.getMinecraft().gameSettings.showDebugInfo && IndicatorsConfig.mainInstance().DebugHidesWindow) {
-                LastTargeted = 0;
+            if (mc.gameSettings.showDebugInfo && IndicatorsConfig.mainInstance().DebugHidesWindow) {
+                lastTargeted = -1;
                 return;
             }
 
-            if (Minecraft.getMinecraft().currentScreen != null && !(Minecraft.getMinecraft().currentScreen instanceof GuiChat)) {
-                LastTargeted = 0;
+            if (mc.currentScreen != null && !(mc.currentScreen instanceof GuiChat)) {
+                lastTargeted = -1;
                 return;
             }
 
@@ -343,26 +322,18 @@ public class DIEventBus {
                 searched = true;
             }
 
-            try {
-                if (IndicatorsConfig.mainInstance().portraitEnabled && !DIPermissions.Handler.allDisabled && !DIPermissions.Handler.mouseOversDisabled) {
-                    if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
-                        GL11.glPushAttrib(0xfffff);
-                        GL11.glPushClientAttrib(0xffffffff);
-                    }
-
-                    try {
-                        updateMouseOversSkinned(event.getPartialTicks());
-                    } catch (Throwable t) {
-                        t.printStackTrace();
-                    }
-
-                    if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
-                        GL11.glPopClientAttrib();
-                        GL11.glPopAttrib();
-                    }
+            if (IndicatorsConfig.mainInstance().portraitEnabled && !DIPermissions.Handler.allDisabled && !DIPermissions.Handler.mouseOversDisabled) {
+                if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
+                    GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
+                    GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS);
                 }
-            } catch (Throwable t) {
-                t.printStackTrace();
+
+                updateMouseOversSkinned(event.getPartialTicks());
+
+                if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
+                    GL11.glPopClientAttrib();
+                    GL11.glPopAttrib();
+                }
             }
         }
 

@@ -1,5 +1,6 @@
 package ru.radviger.damageindicators.gui;
 
+import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.renderer.GlStateManager;
 import ru.radviger.damageindicators.textures.AbstractSkin;
 import ru.radviger.damageindicators.textures.EnumSkinPart;
@@ -48,38 +49,40 @@ public class SkinGui extends GuiScreen {
 
     @Override
     public void drawScreen(int par1, int par2, float par3) {
-        this.config = IndicatorsConfig.mainInstance();
+        IndicatorsConfig config = IndicatorsConfig.mainInstance();
+        EntityPlayerSP player = this.mc.player;
+        this.config = config;
         this.SkinSlot.drawScreen(par1, par2, par3);
         super.drawScreen(par1, par2, par3);
-        GL11.glPushAttrib(278529);
+        GL11.glPushAttrib(GL11.GL_TEXTURE_BIT | GL11.GL_COLOR_BUFFER_BIT | GL11.GL_CURRENT_BIT);
         GlStateManager.pushMatrix();
-        GlStateManager.translate((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
-        GlStateManager.scale(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, 1.0F);
-        float headPosX = (float) IndicatorsConfig.mainInstance().locX;
-        headPosX += ((float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH) / 2.0F) * IndicatorsConfig.mainInstance().guiScale;
-        float headPosY = (float) IndicatorsConfig.mainInstance().locY;
-        headPosY += ((float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWY) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDHEIGHT) / 2.0F) * IndicatorsConfig.mainInstance().guiScale;
+        GlStateManager.translate((1.0F - config.guiScale) * (float) config.locX, (1.0F - config.guiScale) * (float) config.locY, 0.0F);
+        GlStateManager.scale(config.guiScale, config.guiScale, 1.0F);
+        float headPosX = (float) config.locX;
+        headPosX += ((float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH) / 2.0F) * config.guiScale;
+        float headPosY = (float) config.locY;
+        headPosY += ((float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWY) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDHEIGHT) / 2.0F) * config.guiScale;
         headPosX = (float) par1 - headPosX;
         headPosY = (float) par2 - headPosY;
-        float f2 = this.mc.player.renderYawOffset;
-        float f3 = this.mc.player.rotationYaw;
-        float f4 = this.mc.player.rotationPitch;
-        float f5 = this.mc.player.prevRotationYawHead;
-        float f6 = this.mc.player.rotationYawHead;
-        this.mc.player.renderYawOffset = (float) Math.atan((double) (headPosX / 40.0F)) * 20.0F + 35.0F;
-        this.mc.player.rotationYaw = (float) Math.atan((double) (headPosX / 40.0F)) * 40.0F;
-        this.mc.player.rotationPitch = (float) Math.atan((double) (headPosY / 40.0F)) * 20.0F;
-        this.mc.player.rotationYawHead = this.mc.player.rotationYaw;
-        this.mc.player.prevRotationYawHead = this.mc.player.rotationYaw;
+        float f2 = player.renderYawOffset;
+        float f3 = player.rotationYaw;
+        float f4 = player.rotationPitch;
+        float f5 = player.prevRotationYawHead;
+        float f6 = player.rotationYawHead;
+        player.renderYawOffset = (float) Math.atan(headPosX / 40.0F) * 20.0F + 35.0F;
+        player.rotationYaw = (float) Math.atan(headPosX / 40.0F) * 40.0F;
+        player.rotationPitch = (float) Math.atan(headPosY / 40.0F) * 20.0F;
+        player.rotationYawHead = player.rotationYaw;
+        player.prevRotationYawHead = player.rotationYaw;
         Minecraft.getMinecraft().getRenderManager().playerViewY = 180.0F;
-        GL11.glPushClientAttrib(1);
-        DIGuiTools.DrawPortraitSkinned(this.config.locX, this.config.locY, this.mc.player.getName(), (int) Math.ceil((double) this.mc.player.getMaxHealth()), (int) Math.ceil((double) this.mc.player.getHealth()), this.mc.player);
+        GL11.glPushClientAttrib(GL11.GL_CLIENT_PIXEL_STORE_BIT);
+        DIGuiTools.drawPortraitSkinned(this.config.locX, this.config.locY, player.getName(), (int) Math.ceil(player.getMaxHealth()), (int) Math.ceil(player.getHealth()), player);
         GL11.glPopClientAttrib();
-        this.mc.player.renderYawOffset = f2;
-        this.mc.player.rotationYaw = f3;
-        this.mc.player.rotationPitch = f4;
-        this.mc.player.prevRotationYawHead = f5;
-        this.mc.player.rotationYawHead = f6;
+        player.renderYawOffset = f2;
+        player.rotationYaw = f3;
+        player.rotationPitch = f4;
+        player.prevRotationYawHead = f5;
+        player.rotationYawHead = f6;
         GlStateManager.popAttrib();
         GlStateManager.popMatrix();
     }
