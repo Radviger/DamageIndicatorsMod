@@ -1,5 +1,9 @@
 package ru.radviger.damageindicators.gui;
 
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.resources.I18n;
 import ru.radviger.damageindicators.textures.AbstractSkin;
 import ru.radviger.damageindicators.textures.EnumSkinPart;
@@ -120,29 +124,30 @@ public class RepositionGui extends GuiScreen {
 
     private void drawColorSelector() {
         drawRect(-2, -2, 72, 66, -2236963);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        this.gradientTex.updateDynamicTexture();
-        GL11.glBegin(7);
-        GL11.glTexCoord2d(0.0D, 0.0D);
-        GL11.glVertex3d(0.0D, 0.0D, this.zLevel);
-        GL11.glTexCoord2d(0.0D, 1.0D);
-        GL11.glVertex3d(0.0D, 64.0D, this.zLevel);
-        GL11.glTexCoord2d(1.0D, 1.0D);
-        GL11.glVertex3d(64.0D, 64.0D, this.zLevel);
-        GL11.glTexCoord2d(1.0D, 0.0D);
-        GL11.glVertex3d(64.0D, 0.0D, this.zLevel);
-        GL11.glEnd();
-        this.colorBarTex.updateDynamicTexture();
-        GL11.glBegin(7);
-        GL11.glTexCoord2d(0.0D, 0.0D);
-        GL11.glVertex3d(66.0D, 0.0D, this.zLevel);
-        GL11.glTexCoord2d(0.0D, 1.0D);
-        GL11.glVertex3d(66.0D, 64.0D, this.zLevel);
-        GL11.glTexCoord2d(1.0D, 1.0D);
-        GL11.glVertex3d(70.0D, 64.0D, this.zLevel);
-        GL11.glTexCoord2d(1.0D, 0.0D);
-        GL11.glVertex3d(70.0D, 0.0D, this.zLevel);
-        GL11.glEnd();
+        GlStateManager.color(1F, 1F, 1F, 1F);
+
+        gradientTex.updateDynamicTexture();
+        Tessellator t = Tessellator.getInstance();
+        BufferBuilder b = t.getBuffer();
+
+        b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+
+        b.pos(0, 0, zLevel).tex(0, 0).endVertex();
+        b.pos(0, 64, zLevel).tex(0, 1).endVertex();
+        b.pos(64, 64, zLevel).tex(1, 1).endVertex();
+        b.pos(64, 0, zLevel).tex(1, 0).endVertex();
+
+        t.draw();
+
+        colorBarTex.updateDynamicTexture();
+
+        b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+
+        b.pos(66, 0, zLevel).tex(0, 0);
+        b.pos(66, 64, zLevel).tex(0, 1);
+        b.pos(70, 64, zLevel).tex(1, 1);
+        b.pos(70, 0, zLevel).tex(1, 0);
+        t.draw();
     }
 
     private void drawGradient(int startRed, int startGreen, int startBlue) {
@@ -174,17 +179,17 @@ public class RepositionGui extends GuiScreen {
     @Override
     public void drawScreen(int par1, int par2, float par3) {
         this.drawDefaultBackground();
-        GL11.glPushMatrix();
+        GlStateManager.pushMatrix();
         ((GuiCheckBox) this.buttonList.get(6)).checked = this.config.alternateRenderingMethod;
         ((GuiCheckBox) this.buttonList.get(7)).checked = this.config.highCompatibilityMod;
         if (!this.config.portraitEnabled) {
             this.buttonList.get(1).enabled = false;
         } else {
             this.buttonList.get(1).enabled = true;
-            GL11.glPushMatrix();
-            GL11.glColor3f(1.0F, 1.0F, 1.0F);
-            GL11.glTranslatef((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
-            GL11.glScalef(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, 1.0F);
+            GlStateManager.pushMatrix();
+            GlStateManager.color(1F, 1F, 1F);
+            GlStateManager.translate((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
+            GlStateManager.scale(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, 1.0F);
             GL11.glPushAttrib(8192);
             float headPosX = (float) IndicatorsConfig.mainInstance().locX;
             headPosX += ((float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH) / 2.0F) * IndicatorsConfig.mainInstance().guiScale;
@@ -209,8 +214,8 @@ public class RepositionGui extends GuiScreen {
             this.mc.player.rotationPitch = f4;
             this.mc.player.prevRotationYawHead = f5;
             this.mc.player.rotationYawHead = f6;
-            GL11.glPopAttrib();
-            GL11.glPopMatrix();
+            GlStateManager.popAttrib();
+            GlStateManager.popMatrix();
         }
 
         if (this.animationTick >= 1.0F) {
@@ -218,39 +223,39 @@ public class RepositionGui extends GuiScreen {
         }
 
         this.animationTick += 0.01F;
-        GL11.glTranslatef((float) (this.width / 2 + 30 - this.textWidth / 2), (float) (this.height / 2 - 30), 0.0F);
+        GlStateManager.translate((float) (this.width / 2 + 30 - this.textWidth / 2), (float) (this.height / 2 - 30), 0.0F);
         drawRect(0, 0, 30, 20, 1996488704);
         drawRect(0, 2, 30, 0, -1441726384);
         drawRect(0, 22, 30, 20, -1441726384);
         drawRect(0, 0, 2, 22, -1441726384);
         drawRect(28, 0, 30, 22, -1441726384);
-        GL11.glTranslatef(32.0F, 25.0F, 0.0F);
+        GlStateManager.translate(32.0F, 25.0F, 0.0F);
         drawRect(0, 0, 15, 13, -16777216 | this.config.DIColor);
         if (this.setDamageColor) {
             drawRect(0, 2, 15, 0, -2236963);
             drawRect(0, 15, 15, 13, -2236963);
             drawRect(0, 0, 2, 15, -2236963);
             drawRect(13, 0, 15, 15, -2236963);
-            GL11.glTranslatef(17.0F, -31.0F, 0.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.translate(17.0F, -31.0F, 0.0F);
+            GlStateManager.color(1F, 1F, 1F, 1F);
             this.drawColorSelector();
-            GL11.glTranslatef(-17.0F, 31.0F, 0.0F);
+            GlStateManager.translate(-17.0F, 31.0F, 0.0F);
         }
 
-        GL11.glTranslatef(0.0F, 20.0F, 0.0F);
+        GlStateManager.translate(0.0F, 20.0F, 0.0F);
         drawRect(0, 0, 15, 15, -16777216 | this.config.healColor);
         if (this.setHealColor) {
             drawRect(0, 2, 15, 0, -2236963);
             drawRect(0, 15, 15, 13, -2236963);
             drawRect(0, 0, 2, 15, -2236963);
             drawRect(13, 0, 15, 15, -2236963);
-            GL11.glTranslatef(17.0F, -51.0F, 0.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.translate(17.0F, -51.0F, 0.0F);
+            GlStateManager.color(1F, 1F, 1F, 1F);
             this.drawColorSelector();
-            GL11.glTranslatef(-17.0F, 51.0F, 0.0F);
+            GlStateManager.translate(-17.0F, 51.0F, 0.0F);
         }
 
-        GL11.glPopMatrix();
+        GlStateManager.popMatrix();
         boolean mouseOver = false;
         boolean mouseOver2 = false;
         if (par1 > this.config.locX && par1 < this.config.locX + (Integer) JarSkinRegistration.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGFRAMEWIDTH) && par2 > this.config.locY && par2 < this.config.locY + (Integer) JarSkinRegistration.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGFRAMEHEIGHT)) {
@@ -276,35 +281,35 @@ public class RepositionGui extends GuiScreen {
         ((GuiCheckBox) this.buttonList.get(1)).setChecked(this.config.enablePotionEffects);
         ((GuiCheckBox) this.buttonList.get(2)).setChecked(this.config.popOffsEnabled);
         super.drawScreen(par1, par2, par3);
-        GL11.glDepthFunc(519);
+        GlStateManager.depthFunc(GL11.GL_ALWAYS);
         if (mouseOver) {
-            GL11.glPushMatrix();
+            GlStateManager.pushMatrix();
             this.fontRenderer.getStringWidth(I18n.format("translation.gui.dragme"));
-            GL11.glTranslatef((float) par1, (float) par2, 0.0F);
+            GlStateManager.translate((float) par1, (float) par2, 0.0F);
             drawRect(0, 0, 60, 20, 1996488704);
             drawRect(0, 2, 60, 0, -1441726384);
             drawRect(0, 22, 60, 20, -1441726384);
             drawRect(0, 0, 2, 22, -1441726384);
             drawRect(58, 0, 60, 22, -1441726384);
             this.fontRenderer.drawString(I18n.format("translation.gui.dragme"), 7, 7, -1429418804);
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         }
 
         if (mouseOver2) {
-            GL11.glPushMatrix();
+            GlStateManager.pushMatrix();
             this.fontRenderer.getStringWidth(I18n.format("translation.gui.optperfdecrease"));
-            GL11.glTranslatef((float) par1, (float) (par2 - 22), 0.0F);
+            GlStateManager.translate((float) par1, (float) (par2 - 22), 0.0F);
             drawRect(0, 0, 210, 20, 1996488704);
             drawRect(0, 2, 210, 0, -1441726384);
             drawRect(0, 22, 210, 20, -1441726384);
             drawRect(0, 0, 2, 22, -1441726384);
             drawRect(208, 0, 210, 22, -1441726384);
             this.fontRenderer.drawString(I18n.format("translation.gui.optperfdecrease"), 7, 7, -1429418804);
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         }
 
-        GL11.glDepthFunc(515);
-        GL11.glEnable(2929);
+        GlStateManager.depthFunc(GL11.GL_LEQUAL);
+        GlStateManager.enableDepth();
     }
 
     @Override
@@ -337,7 +342,7 @@ public class RepositionGui extends GuiScreen {
         this.gtf.setVisible(true);
         this.drawColorbar();
         this.drawGradient(255, 0, 255);
-        GL11.glClear(256);
+        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
     }
 
     @Override

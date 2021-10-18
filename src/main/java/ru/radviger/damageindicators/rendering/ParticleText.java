@@ -1,5 +1,6 @@
 package ru.radviger.damageindicators.rendering;
 
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.resources.I18n;
 import ru.radviger.damageindicators.configuration.IndicatorsConfig;
 import net.minecraft.client.Minecraft;
@@ -91,43 +92,43 @@ public class ParticleText extends Particle {
     @Override
     public void renderParticle(BufferBuilder buffer, Entity entityIn, float partialTicks, float rotationX, float rotationZ, float rotationYZ, float rotationXY, float rotationXZ) {
         this.shouldOnTop = Minecraft.getMinecraft().player.canEntityBeSeen(entityIn);
-        double rotationYaw = -Minecraft.getMinecraft().player.rotationYaw;
-        double rotationPitch = Minecraft.getMinecraft().player.rotationPitch;
+        float rotationYaw = -Minecraft.getMinecraft().player.rotationYaw;
+        float rotationPitch = Minecraft.getMinecraft().player.rotationPitch;
         float size = 0.1F * this.particleScale;
 
         this.locX = (float) (this.prevPosX + (this.posX - this.prevPosX) * (double) partialTicks - interpPosX);
         this.locY = (float) (this.prevPosY + (this.posY - this.prevPosY) * (double) partialTicks - interpPosY);
         this.locZ = (float) (this.prevPosZ + (this.posZ - this.prevPosZ) * (double) partialTicks - interpPosZ);
 
-        GL11.glPushMatrix();
+        GlStateManager.pushMatrix();
         if (this.shouldOnTop) {
-            GL11.glDepthFunc(519);
+            GlStateManager.depthFunc(GL11.GL_ALWAYS);
         } else {
-            GL11.glDepthFunc(515);
+            GlStateManager.depthFunc(GL11.GL_LEQUAL);
         }
 
-        GL11.glTranslatef(this.locX, this.locY, this.locZ);
-        GL11.glRotated(rotationYaw, 0.0D, 1.0D, 0.0D);
-        GL11.glRotated(rotationPitch, 1.0D, 0.0D, 0.0D);
-        GL11.glScalef(-1.0F, -1.0F, 1.0F);
-        GL11.glScaled((double) this.particleScale * 0.008D, (double) this.particleScale * 0.008D, (double) this.particleScale * 0.008D);
+        GlStateManager.translate(this.locX, this.locY, this.locZ);
+        GlStateManager.rotate(rotationYaw, 0, 1, 0);
+        GlStateManager.rotate(rotationPitch, 1, 0, 0);
+        GlStateManager.scale(-1.0F, -1.0F, 1.0F);
+        GlStateManager.scale((double) this.particleScale * 0.008D, (double) this.particleScale * 0.008D, (double) this.particleScale * 0.008D);
         if (this.criticalhit) {
-            GL11.glScaled(0.5D, 0.5D, 0.5D);
+            GlStateManager.scale(0.5D, 0.5D, 0.5D);
         }
 
         this.fontRenderer = Minecraft.getMinecraft().fontRenderer;
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 0.003662109F);
-        GL11.glEnable(3553);
-        GL11.glDisable(3042);
-        GL11.glDepthMask(true);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glEnable(3553);
-        GL11.glEnable(2929);
-        GL11.glDisable(2896);
-        GL11.glBlendFunc(770, 771);
-        GL11.glEnable(3042);
-        GL11.glEnable(3008);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.enableTexture2D();
+        GlStateManager.disableBlend();
+        GlStateManager.depthMask(true);
+        GlStateManager.color(1F, 1F, 1F, 1F);
+        GlStateManager.enableTexture2D();
+        GlStateManager.enableDepth();
+        GlStateManager.disableLighting();
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        GlStateManager.enableBlend();
+        GlStateManager.enableAlpha();
+        GlStateManager.color(1F, 1F, 1F, 1F);
         if (this.criticalhit && IndicatorsConfig.mainInstance().showCriticalStrikes) {
             this.renderText(this.critical, (float) this.fontRenderer.getStringWidth(this.critical) / -2.0F, (float) this.fontRenderer.FONT_HEIGHT / -2.0F, 204, 0, 0);
         } else if (!this.criticalhit) {
@@ -135,9 +136,9 @@ public class ParticleText extends Particle {
             this.renderText(String.valueOf(this.Damage), (float) this.fontRenderer.getStringWidth(this.Damage + "") / -2.0F, (float) this.fontRenderer.FONT_HEIGHT / -2.0F, color >> 16 & 255, color >> 8 & 255, color >> 0 & 255);
         }
 
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glDepthFunc(515);
-        GL11.glPopMatrix();
+        GlStateManager.color(1F, 1F, 1F, 1F);
+        GlStateManager.depthFunc(GL11.GL_LEQUAL);
+        GlStateManager.popMatrix();
         if (this.grow) {
             this.particleScale *= 1.08F;
             if ((double) this.particleScale > (double) config.Size * 3.0D) {
@@ -146,7 +147,6 @@ public class ParticleText extends Particle {
         } else {
             this.particleScale *= 0.96F;
         }
-
     }
 
     public void renderText(String str, float posX, float posY, int red, int green, int blue) {
@@ -169,21 +169,23 @@ public class ParticleText extends Particle {
             }
 
             this.fontRenderer.drawString(str, 1, 1, ((int) ((double) this.alpha * 200.0D) & 255) << 24);
-            GL11.glPushMatrix();
-            GL11.glTranslated(-0.2D, -0.2D, 0.0D);
-            GL11.glScaled(1.075D, 1.075D, 1.0D);
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(-0.2D, -0.2D, 0.0D);
+            GlStateManager.scale(1.075D, 1.075D, 1.0D);
             this.fontRenderer.drawString(str, 0, 0, ((int) ((double) this.alpha * 64.0D) & 255) << 24 | ((red + r) / 2 & 255) << 16 | ((green + g) / 2 & 255) << 8 | ((blue + b) / 2 & 255) << 0);
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
+
             this.fontRenderer.drawString(str, 0, 0, ((int) ((double) this.alpha * 128.0D) & 255) << 24 | ((red + red + r) / 3 & 255) << 16 | ((green + green + g) / 3 & 255) << 8 | ((blue + blue + b) / 3 & 255) << 0);
-            GL11.glPushMatrix();
-            GL11.glTranslated(0.15D, 0.15D, 0.0D);
-            GL11.glScaled(0.95D, 0.95D, 1.0D);
+
+            GlStateManager.pushMatrix();
+            GlStateManager.translate(0.15D, 0.15D, 0.0D);
+            GlStateManager.scale(0.95D, 0.95D, 1.0D);
             this.fontRenderer.drawString(str, 0, 0, ((int) ((double) this.alpha * 255.0D) & 255) << 24 | (red & 255) << 16 | (green & 255) << 8 | (blue & 255) << 0);
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         } else {
             this.fontRenderer.drawString(str, 0, 0, ((int) ((double) this.alpha * 255.0D) & 255) << 24 | (red & 255) << 16 | (green & 255) << 8 | (blue & 255) << 0);
         }
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color(1F, 1F, 1F, 1F);
     }
 
     @Override

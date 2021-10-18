@@ -3,6 +3,7 @@ package ru.radviger.damageindicators.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.opengl.GL11;
 
@@ -36,15 +37,6 @@ public class GuiToolTip extends Gui {
         this.cfr = Minecraft.getMinecraft().fontRenderer;
     }
 
-    public static void addVertexWithUV(double x, double y, double z, double u, double v) {
-        GL11.glTexCoord2d(u, v);
-        GL11.glVertex3d(x, y, z);
-    }
-
-    public static void addVertex(double x, double y, double z) {
-        GL11.glVertex3d(x, y, z);
-    }
-
     public void drawCenteredStringNoShadow(FontRenderer par1FontRenderer, String par2Str, int par3, int par4, int par5) {
         this.cfr.setUnicodeFlag(true);
         if ((par5 >> 24 & 255) > 16) {
@@ -67,9 +59,9 @@ public class GuiToolTip extends Gui {
     }
 
     public void drawStrings(FontRenderer par1FontRenderer, int x, int y, int border, int gradStart, int gradEnd, int font, boolean centered, String[] lines) {
-        GL11.glDepthFunc(519);
+        GlStateManager.depthFunc(GL11.GL_ALWAYS);
         float[] components = (new Color(this.gradientStart)).getComponents(new float[4]);
-        GL11.glColor4f(components[0], components[1], components[2], components[3]);
+        GlStateManager.color(components[0], components[1], components[2], components[3]);
         int lineNumber;
         if (this.useTexture) {
             lineNumber = 0 + this.iconIndex % 8 * 18;
@@ -104,8 +96,8 @@ public class GuiToolTip extends Gui {
             ++lineNumber;
         }
 
-        GL11.glDepthFunc(515);
-        GL11.glClear(256);
+        GlStateManager.depthFunc(GL11.GL_LEQUAL);
+        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
     }
 
     public void drawStrings(FontRenderer par1FontRenderer, int x, int y, int border, int gradStart, int gradEnd, int font, String[] lines) {
@@ -125,20 +117,18 @@ public class GuiToolTip extends Gui {
     }
 
     public void drawStringsWithDifferentColors(FontRenderer par1FontRenderer, int x, int y, int border, int gradStart, int gradEnd, boolean centered, String[] lines, int[] colors) {
-        GL11.glPushMatrix();
-        GL11.glTranslatef(0.0F, 0.0F, 1800.0F);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate(0.0F, 0.0F, 1800.0F);
         if (lines.length != colors.length) {
             throw new IllegalArgumentException("The number of string lines must be equal to the number of colors passed in");
         } else {
-            int len$;
-            int i$;
             if (this.useTexture) {
-                float[] arr$ = (new Color(this.gradientStart)).getComponents(new float[4]);
-                GL11.glColor4f(arr$[0], arr$[1], arr$[2], arr$[3]);
-                len$ = 0 + this.iconIndex % 8 * 18;
-                i$ = 198 + this.iconIndex / 8 * 18;
-                this.PARENT.drawTexturedModalRect(x, y, len$, i$, this.WIDTH, this.HEIGHT);
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                float[] color = (new Color(this.gradientStart)).getComponents(new float[4]);
+                GlStateManager.color(color[0], color[1], color[2], color[3]);
+                int u = 0 + this.iconIndex % 8 * 18;
+                int v = 198 + this.iconIndex / 8 * 18;
+                this.PARENT.drawTexturedModalRect(x, y, u, v, this.WIDTH, this.HEIGHT);
+                GlStateManager.color(1F, 1F, 1F, 1F);
             } else {
                 this.PARENT.drawGradientRect(x, y, this.WIDTH, this.HEIGHT, gradStart, gradEnd);
                 drawRect(x, y, x + this.WIDTH, y + this.borderWidth, border);
@@ -147,28 +137,25 @@ public class GuiToolTip extends Gui {
                 drawRect(x + this.WIDTH - this.borderWidth, y, x + this.WIDTH, y + this.HEIGHT, border);
             }
 
-            int var18 = 0;
-            String[] var17 = lines;
-            len$ = lines.length;
+            int i = 0;
 
-            for (i$ = 0; i$ < len$; ++i$) {
-                String string = var17[i$];
+            for (String string : lines) {
                 int linecount = lines.length;
                 int verticalSpacing = MathHelper.floor((float) (this.HEIGHT / (linecount + 1)));
                 if (centered) {
                     if (this.centerVertically) {
-                        this.drawCenteredString(par1FontRenderer, string, x + this.WIDTH / 2, y + verticalSpacing * var18 - par1FontRenderer.FONT_HEIGHT / 2, colors[var18]);
+                        this.drawCenteredString(par1FontRenderer, string, x + this.WIDTH / 2, y + verticalSpacing * i - par1FontRenderer.FONT_HEIGHT / 2, colors[i]);
                     } else {
-                        this.drawCenteredString(par1FontRenderer, string, x + this.WIDTH / 2, y + 3 + var18 * this.lineSpacing, colors[var18]);
+                        this.drawCenteredString(par1FontRenderer, string, x + this.WIDTH / 2, y + 3 + i * this.lineSpacing, colors[i]);
                     }
                 } else {
-                    this.drawString(par1FontRenderer, string, x + 3, y + 3 + var18 * this.lineSpacing, colors[var18]);
+                    this.drawString(par1FontRenderer, string, x + 3, y + 3 + i * this.lineSpacing, colors[i]);
                 }
 
-                ++var18;
+                ++i;
             }
 
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         }
     }
 

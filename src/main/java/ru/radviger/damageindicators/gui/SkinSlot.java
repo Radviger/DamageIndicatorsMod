@@ -1,16 +1,17 @@
 package ru.radviger.damageindicators.gui;
 
-import ru.radviger.damageindicators.textures.AbstractSkin;
-import ru.radviger.damageindicators.configuration.IndicatorsConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.math.MathHelper;
 import org.lwjgl.input.Mouse;
 import org.lwjgl.opengl.GL11;
-
-import java.util.List;
+import ru.radviger.damageindicators.configuration.IndicatorsConfig;
+import ru.radviger.damageindicators.textures.AbstractSkin;
 
 public class SkinSlot {
     protected final int listWidth;
@@ -19,7 +20,6 @@ public class SkinSlot {
     protected final int bottom;
     protected final int left;
     protected final int slotHeight;
-    private final Minecraft client;
     private final int right;
     public int selectedEntry;
     protected int mouseX;
@@ -29,7 +29,6 @@ public class SkinSlot {
     int boxHeight;
     int boxLocY;
     private SkinGui parentTexturePackGui;
-    private Minecraft mc;
     private int scrollUpActionId;
     private int scrollDownActionId;
     private float initialMouseClickY;
@@ -37,9 +36,7 @@ public class SkinSlot {
     private float scrollDistance;
     private int selectedIndex;
     private long lastClickTime;
-    private boolean showSelectionBox;
-    private boolean field_77243_s;
-    private int field_77242_t;
+    private final boolean showSelectionBox;
 
     public SkinSlot(SkinGui par1GuiTexturePacks) {
         this(Minecraft.getMinecraft(), par1GuiTexturePacks.width - 128, par1GuiTexturePacks.height - 128, 64, par1GuiTexturePacks.height - 64, 64, 32);
@@ -57,7 +54,6 @@ public class SkinSlot {
         this.selectedIndex = -1;
         this.lastClickTime = 0L;
         this.showSelectionBox = true;
-        this.client = client;
         this.listWidth = width;
         this.listHeight = height;
         this.top = top;
@@ -65,8 +61,7 @@ public class SkinSlot {
         this.slotHeight = entryHeight;
         this.left = left;
         this.right = width + this.left;
-        this.mc = client;
-        ScaledResolution scaledresolution = new ScaledResolution(this.mc);
+        ScaledResolution scaledresolution = new ScaledResolution(client);
         this.boxLocX = MathHelper.floor((float) (left * scaledresolution.getScaleFactor()));
         this.boxWidth = MathHelper.floor((float) (width * scaledresolution.getScaleFactor()));
         this.boxHeight = MathHelper.floor((float) (height * scaledresolution.getScaleFactor()));
@@ -74,27 +69,18 @@ public class SkinSlot {
         this.selectedEntry = AbstractSkin.AVAILABLESKINS.indexOf(IndicatorsConfig.mainInstance().selectedSkin);
     }
 
-    public static void addVertexWithUV(double x, double y, double z, double u, double v) {
-        GL11.glTexCoord2d(u, v);
-        GL11.glVertex3d(x, y, z);
-    }
-
-    public static void addVertex(double x, double y, double z) {
-        GL11.glVertex3d(x, y, z);
-    }
-
     protected int getSize() {
         return AbstractSkin.AVAILABLESKINS.size();
     }
 
-    protected void elementClicked(int par1, boolean par2) {
-        IndicatorsConfig.mainInstance().selectedSkin = AbstractSkin.AVAILABLESKINS.get(par1);
+    protected void elementClicked(int id, boolean doubleClick) {
+        IndicatorsConfig.mainInstance().selectedSkin = AbstractSkin.AVAILABLESKINS.get(id);
         AbstractSkin.setSkin(IndicatorsConfig.mainInstance().selectedSkin);
-        if (par2) {
+        if (doubleClick) {
             Minecraft.getMinecraft().displayGuiScreen(this.parentTexturePackGui);
         }
 
-        this.selectedEntry = par1;
+        this.selectedEntry = id;
     }
 
     protected boolean isSelected(int index) {
@@ -111,43 +97,8 @@ public class SkinSlot {
         this.parentTexturePackGui.drawString(Minecraft.getMinecraft().fontRenderer, text2, var10003, par3 + 15, color);
     }
 
-    public void setShowSelectionBox(boolean par1) {
-        this.showSelectionBox = par1;
-    }
-
-    protected void func_77223_a(boolean par1, int par2) {
-        this.field_77243_s = par1;
-        this.field_77242_t = par2;
-        if (!par1) {
-            this.field_77242_t = 0;
-        }
-
-    }
-
     protected int getContentHeight() {
-        return this.getSize() * this.slotHeight + this.field_77242_t;
-    }
-
-    protected void func_77222_a(int par1, int par2, Tessellator par3Tessellator) {
-    }
-
-    protected void func_77224_a(int par1, int par2) {
-    }
-
-    protected void func_77215_b(int par1, int par2) {
-    }
-
-    public int func_77210_c(int par1, int par2) {
-        int var3 = this.left + 1;
-        int var4 = this.left + this.listWidth - 7;
-        int var5 = par2 - this.top - this.field_77242_t + (int) this.scrollDistance - 4;
-        int var6 = var5 / this.slotHeight;
-        return par1 >= var3 && par1 <= var4 && var6 >= 0 && var5 >= 0 && var6 < this.getSize() ? var6 : -1;
-    }
-
-    public void registerScrollButtons(List par1List, int par2, int par3) {
-        this.scrollUpActionId = par2;
-        this.scrollDownActionId = par3;
+        return this.getSize() * this.slotHeight;
     }
 
     private void applyScrollLimits() {
@@ -183,7 +134,7 @@ public class SkinSlot {
 
     public void drawScreen(int mouseX, int mouseY, float par3) {
         try {
-            GL11.glEnable(3089);
+            GL11.glEnable(GL11.GL_SCISSOR_TEST);
             GL11.glScissor(this.boxLocX, this.boxLocY, this.boxWidth, this.boxHeight);
             this.mouseX = mouseX;
             this.mouseY = mouseY;
@@ -201,15 +152,14 @@ public class SkinSlot {
                 } else {
                     boolean var18 = true;
                     if (mouseY >= this.top && mouseY <= this.bottom) {
-                        int var10 = mouseY - this.top - this.field_77242_t + (int) this.scrollDistance - 4;
-                        int var11 = var10 / this.slotHeight;
-                        if (mouseX >= boxLeft && mouseX <= boxRight && var11 >= 0 && var10 >= 0 && var11 < ex) {
-                            boolean var17 = var11 == this.selectedIndex && System.currentTimeMillis() - this.lastClickTime < 250L;
-                            this.elementClicked(var11, var17);
-                            this.selectedIndex = var11;
+                        int var10 = mouseY - this.top + (int) this.scrollDistance - 4;
+                        int id = var10 / this.slotHeight;
+                        if (mouseX >= boxLeft && mouseX <= boxRight && id >= 0 && var10 >= 0 && id < ex) {
+                            boolean doubleClick = id == this.selectedIndex && System.currentTimeMillis() - this.lastClickTime < 250L;
+                            this.elementClicked(id, doubleClick);
+                            this.selectedIndex = id;
                             this.lastClickTime = System.currentTimeMillis();
                         } else if (mouseX >= boxLeft && mouseX <= boxRight && var10 < 0) {
-                            this.func_77224_a(mouseX - boxLeft, mouseY - this.top + (int) this.scrollDistance - 4);
                             var18 = false;
                         }
 
@@ -261,128 +211,123 @@ public class SkinSlot {
             }
 
             this.applyScrollLimits();
-            GL11.glDisable(2896);
-            GL11.glDisable(2912);
-            GL11.glDisable(3553);
-            GL11.glEnable(3042);
-            GL11.glEnable(3008);
-            GL11.glBlendFunc(770, 771);
-            GL11.glBegin(7);
-            GL11.glColor4f(0.3F, 0.3F, 0.3F, 0.5F);
-            addVertexWithUV(this.left, this.bottom, 0.0D, 0.0D, 1.0D);
-            addVertexWithUV(this.right, this.bottom, 0.0D, 1.0D, 1.0D);
-            addVertexWithUV(this.right, this.top, 0.0D, 1.0D, 0.0D);
-            addVertexWithUV(this.left, this.top, 0.0D, 0.0D, 0.0D);
-            GL11.glEnd();
-            GL11.glEnable(3553);
-            int var10 = this.top + 4 - (int) this.scrollDistance;
-            if (this.field_77243_s) {
-            }
+            GlStateManager.disableLighting();
+            GlStateManager.disableFog();
+            GlStateManager.disableTexture2D();
+            GlStateManager.enableBlend();
+            GlStateManager.enableAlpha();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 
-            for (int var11 = 0; var11 < ex; ++var11) {
-                int var19 = var10 + var11 * this.slotHeight + this.field_77242_t;
-                int var13 = this.slotHeight - 4;
-                if (var19 <= this.bottom && var19 + var13 >= this.top) {
-                    if (this.showSelectionBox && this.isSelected(var11)) {
-                        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                        GL11.glEnable(3042);
-                        GL11.glBlendFunc(770, 771);
-                        GL11.glDisable(3553);
-                        GL11.glBegin(7);
-                        float j = 128.0F;
-                        float k = 128.0F;
-                        j = 128.0F;
-                        j = (float) ((double) j / 255.0D);
-                        k = (float) ((double) k / 255.0D);
-                        j = (float) ((double) j / 255.0D);
-                        GL11.glColor3f(j, k, j);
-                        addVertexWithUV(boxLeft, var19 + var13 + 2, 0.0D, 0.0D, 1.0D);
-                        addVertexWithUV(boxRight, var19 + var13 + 2, 0.0D, 1.0D, 1.0D);
-                        addVertexWithUV(boxRight, var19 - 2, 0.0D, 1.0D, 0.0D);
-                        addVertexWithUV(boxLeft, var19 - 2, 0.0D, 0.0D, 0.0D);
-                        GL11.glColor3f(0.0F, 0.0F, 0.0F);
-                        addVertexWithUV(boxLeft + 1, var19 + var13 + 1, 0.0D, 0.0D, 1.0D);
-                        addVertexWithUV(boxRight - 1, var19 + var13 + 1, 0.0D, 1.0D, 1.0D);
-                        addVertexWithUV(boxRight - 1, var19 - 1, 0.0D, 1.0D, 0.0D);
-                        addVertexWithUV(boxLeft + 1, var19 - 1, 0.0D, 0.0D, 0.0D);
-                        GL11.glEnd();
-                        GL11.glEnable(3553);
+            Tessellator t = Tessellator.getInstance();
+            BufferBuilder b = t.getBuffer();
+
+            b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+
+            b.pos(left, bottom, 0).tex(0, 1).color(0.3F, 0.3F, 0.3F, 0.5F).endVertex();
+            b.pos(right, bottom, 0).tex(1, 1).color(0.3F, 0.3F, 0.3F, 0.5F).endVertex();;
+            b.pos(right, top, 0).tex(1, 0).color(0.3F, 0.3F, 0.3F, 0.5F).endVertex();;
+            b.pos(left, top, 0).tex(0, 0).color(0.3F, 0.3F, 0.3F, 0.5F).endVertex();;
+
+            t.draw();
+
+            GlStateManager.enableTexture2D();
+            int d = top + 4 - (int) scrollDistance;
+
+            for (int i = 0; i < ex; ++i) {
+                int boxTop = d + i * slotHeight;
+                int boxHeight = slotHeight - 4;
+                if (boxTop <= bottom && boxTop + boxHeight >= top) {
+                    if (showSelectionBox && isSelected(i)) {
+                        GlStateManager.color(1F, 1F, 1F, 1F);
+                        GlStateManager.enableBlend();
+                        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+                        GlStateManager.disableTexture2D();
+
+                        b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+
+                        b.pos(boxLeft, boxTop + boxHeight + 2, 0).tex(0, 1).color(0.5F, 0.5F, 0.5F, 1F).endVertex();
+                        b.pos(boxRight, boxTop + boxHeight + 2, 0).tex(1, 1).color(0.5F, 0.5F, 0.5F, 1F).endVertex();;
+                        b.pos(boxRight, boxTop - 2, 0).tex(1, 0).color(0.5F, 0.5F, 0.5F, 1F).endVertex();;
+                        b.pos(boxLeft, boxTop - 2, 0).tex(0, 0).color(0.5F, 0.5F, 0.5F, 1F).endVertex();;
+
+                        b.pos(boxLeft + 1, boxTop + boxHeight + 1, 0).tex(0, 1).color(0F, 0F, 0F, 1F).endVertex();
+                        b.pos(boxRight - 1, boxTop + boxHeight + 1, 0).tex(1, 1).color(0F, 0F, 0F, 1F).endVertex();;
+                        b.pos(boxRight - 1, boxTop - 1, 0).tex(1, 0).color(0F, 0F, 0F, 1F).endVertex();;
+                        b.pos(boxLeft + 1, boxTop - 1, 0).tex(0, 0).color(0F, 0F, 0F, 1F).endVertex();;
+
+                        t.draw();
+
+                        GlStateManager.enableTexture2D();
                     }
 
-                    this.drawSlot(var11, boxRight, var19, this.getSize());
+                    this.drawSlot(i, boxRight, boxTop, this.getSize());
                 }
             }
 
-            GL11.glDisable(2929);
-            byte var20 = 4;
-            this.overlayBackground(0, this.top, 255, 255);
-            this.overlayBackground(this.bottom, this.listHeight, 255, 255);
-            GL11.glEnable(3042);
-            GL11.glBlendFunc(770, 771);
-            GL11.glDisable(3008);
-            GL11.glShadeModel(7425);
-            GL11.glDisable(3553);
-            GL11.glBegin(7);
-            GL11.glColor3f(0.0F, 0.0F, 0.0F);
-            addVertexWithUV(this.left, this.top + var20, 0.0D, 0.0D, 1.0D);
-            addVertexWithUV(this.right, this.top + var20, 0.0D, 1.0D, 1.0D);
-            GL11.glColor3f(1.0F, 1.0F, 1.0F);
-            addVertexWithUV(this.right, this.top, 0.0D, 1.0D, 0.0D);
-            addVertexWithUV(this.left, this.top, 0.0D, 0.0D, 0.0D);
-            GL11.glEnd();
-            GL11.glBegin(7);
-            addVertexWithUV(this.left, this.bottom, 0.0D, 0.0D, 1.0D);
-            addVertexWithUV(this.right, this.bottom, 0.0D, 1.0D, 1.0D);
-            GL11.glColor3f(0.0F, 0.0F, 0.0F);
-            addVertexWithUV(this.right, this.bottom - var20, 0.0D, 1.0D, 0.0D);
-            addVertexWithUV(this.left, this.bottom - var20, 0.0D, 0.0D, 0.0D);
-            GL11.glEnd();
-            int var19 = this.getContentHeight() - (this.bottom - this.top - 4);
-            if (var19 > 0) {
-                int var13 = (this.bottom - this.top) * (this.bottom - this.top) / this.getContentHeight();
-                if (var13 < 32) {
-                    var13 = 32;
+            GlStateManager.disableDepth();
+
+            overlayBackground(0, top, 255, 255);
+            overlayBackground(bottom, listHeight, 255, 255);
+            GlStateManager.enableBlend();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            GlStateManager.disableAlpha();
+            GlStateManager.shadeModel(GL11.GL_SMOOTH);
+            GlStateManager.disableTexture2D();
+
+            GlStateManager.color(0.0F, 0.0F, 0.0F);
+            b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_COLOR);
+
+            b.pos(left, top + 4, 0).tex(0, 1).color(0F, 0F, 0F, 1F).endVertex();
+            b.pos(right, top + 4, 0).tex(1, 1).color(0F, 0F, 0F, 1F).endVertex();
+            b.pos(right, top, 0).tex(1, 0).color(1F, 1F, 1F, 1F).endVertex();
+            b.pos(left, top, 0).tex(0, 0).color(1F, 1F, 1F, 1F).endVertex();
+
+            b.pos(left, bottom, 0).tex(0, 1).color(1F, 1F, 1F, 1F).endVertex();
+            b.pos(right, bottom, 0).tex(1, 1).color(1F, 1F, 1F, 1F).endVertex();
+            b.pos(right, bottom - 4, 0).tex(1, 0).color(0F, 0F, 0F, 1F).endVertex();
+            b.pos(left, bottom - 4, 0).tex(0, 0).color(0F, 0F, 0F, 1F).endVertex();
+
+            int dh = getContentHeight() - (bottom - top - 4);
+            if (dh > 0) {
+                int sdh = (bottom - top) * (bottom - top) / getContentHeight();
+                if (sdh < 32) {
+                    sdh = 32;
                 }
 
-                if (var13 > this.bottom - this.top - 8) {
-                    var13 = this.bottom - this.top - 8;
+                if (sdh > bottom - top - 8) {
+                    sdh = bottom - top - 8;
                 }
 
-                int var14 = (int) this.scrollDistance * (this.bottom - this.top - var13) / var19 + this.top;
-                if (var14 < this.top) {
-                    var14 = this.top;
+                int th = (int) scrollDistance * (bottom - top - sdh) / dh + this.top;
+                if (th < top) {
+                    th = top;
                 }
 
-                GL11.glBegin(7);
-                GL11.glColor3f(0.0F, 0.0F, 0.0F);
-                addVertexWithUV(scrollBarXStart, this.bottom, 0.0D, 0.0D, 1.0D);
-                addVertexWithUV(scrollBarXEnd, this.bottom, 0.0D, 1.0D, 1.0D);
-                addVertexWithUV(scrollBarXEnd, this.top, 0.0D, 1.0D, 0.0D);
-                addVertexWithUV(scrollBarXStart, this.top, 0.0D, 0.0D, 0.0D);
-                GL11.glEnd();
-                GL11.glBegin(7);
-                GL11.glColor3f(0.5F, 0.5F, 0.5F);
-                addVertexWithUV(scrollBarXStart, (double) (var14 + var13), 0.0D, 0.0D, 1.0D);
-                addVertexWithUV(scrollBarXEnd, (double) (var14 + var13), 0.0D, 1.0D, 1.0D);
-                addVertexWithUV(scrollBarXEnd, var14, 0.0D, 1.0D, 0.0D);
-                addVertexWithUV(scrollBarXStart, var14, 0.0D, 0.0D, 0.0D);
-                GL11.glEnd();
-                GL11.glBegin(7);
-                GL11.glColor3f(0.75F, 0.75F, 0.75F);
-                addVertexWithUV(scrollBarXStart, (double) (var14 + var13 - 1), 0.0D, 0.0D, 1.0D);
-                addVertexWithUV(scrollBarXEnd - 1, (double) (var14 + var13 - 1), 0.0D, 1.0D, 1.0D);
-                addVertexWithUV(scrollBarXEnd - 1, var14, 0.0D, 1.0D, 0.0D);
-                addVertexWithUV(scrollBarXStart, var14, 0.0D, 0.0D, 0.0D);
-                GL11.glEnd();
+                b.pos(scrollBarXStart, bottom, 0).tex(0, 1).color(0F, 0F, 0F, 1F).endVertex();
+                b.pos(scrollBarXEnd, bottom, 0).tex(1, 1).color(0F, 0F, 0F, 1F).endVertex();
+                b.pos(scrollBarXEnd, top, 0).tex(1, 0).color(0F, 0F, 0F, 1F).endVertex();
+                b.pos(scrollBarXStart, top, 0).tex(0, 0).color(0F, 0F, 0F, 1F).endVertex();
+
+                b.pos(scrollBarXStart, th + sdh, 0).tex(0, 1).color(0.5F, 0.5F, 0.5F, 1F).endVertex();
+                b.pos(scrollBarXEnd, th + sdh, 0).tex(1, 1).color(0.5F, 0.5F, 0.5F, 1F).endVertex();
+                b.pos(scrollBarXEnd, th, 0).tex(1, 0).color(0.5F, 0.5F, 0.5F, 1F).endVertex();
+                b.pos(scrollBarXStart, th, 0).tex(0, 0).color(0.5F, 0.5F, 0.5F, 1F).endVertex();
+
+                b.pos(scrollBarXStart, th + sdh - 1, 0).tex(0, 1).color(0.75F, 0.75F, 0.75F, 1F).endVertex();
+                b.pos(scrollBarXEnd - 1, th + sdh - 1, 0).tex(1, 1).color(0.75F, 0.75F, 0.75F, 1F).endVertex();
+                b.pos(scrollBarXEnd - 1, th, 0).tex(1, 0).color(0.75F, 0.75F, 0.75F, 1F).endVertex();
+                b.pos(scrollBarXStart, th, 0).tex(0, 0).color(0.75F, 0.75F, 0.75F, 1F).endVertex();
+
             }
 
-            this.func_77215_b(mouseX, mouseY);
-            GL11.glEnable(3553);
-            GL11.glShadeModel(7424);
-            GL11.glEnable(3008);
-            GL11.glDisable(3042);
-            GL11.glDisable(3089);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            t.draw();
+
+            GlStateManager.enableTexture2D();
+            GlStateManager.shadeModel(GL11.GL_FLAT);
+            GlStateManager.enableAlpha();
+            GlStateManager.disableBlend();
+            GL11.glDisable(GL11.GL_SCISSOR_TEST);
+            GlStateManager.color(1F, 1F, 1F, 1F);
         } catch (Throwable t) {
             t.printStackTrace();
         }

@@ -3,6 +3,7 @@ package ru.radviger.damageindicators.core;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.settings.KeyBinding;
 import net.minecraft.entity.Entity;
@@ -110,7 +111,7 @@ public class DIEventBus {
                     IndicatorsConfig.mainInstance().locY = 0;
                 }
 
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                GlStateManager.color(1F, 1F, 1F, 1F);
                 if (el == null) {
                     tick -= elapsedTime;
                     el = (EntityLivingBase) Minecraft.getMinecraft().world.getEntityByID(LastTargeted);
@@ -162,17 +163,18 @@ public class DIEventBus {
                     }
                 }
 
-                GL11.glPushMatrix();
-                GL11.glTranslatef((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
-                GL11.glScalef(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale);
+                GlStateManager.pushMatrix();
+                GlStateManager.translate((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
+                GlStateManager.scale(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale);
 
                 DIGuiTools.DrawPortraitSkinned(IndicatorsConfig.mainInstance().locX, IndicatorsConfig.mainInstance().locY, Name, MathHelper.ceil(el.getHealth()), MathHelper.ceil(el.getMaxHealth()), el);
 
-                GL11.glPopMatrix();
+                GlStateManager.popMatrix();
+
                 OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
-                GL11.glDisableClientState(32888);
+                GL11.glDisableClientState(32888); // NANI?
                 OpenGlHelper.setClientActiveTexture(OpenGlHelper.defaultTexUnit);
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                GlStateManager.color(1F, 1F, 1F, 1F);
             }
         }
 
@@ -344,8 +346,8 @@ public class DIEventBus {
             try {
                 if (IndicatorsConfig.mainInstance().portraitEnabled && !DIPermissions.Handler.allDisabled && !DIPermissions.Handler.mouseOversDisabled) {
                     if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
-                        GL11.glPushAttrib(1048575);
-                        GL11.glPushClientAttrib(-1);
+                        GL11.glPushAttrib(0xfffff);
+                        GL11.glPushClientAttrib(0xffffffff);
                     }
 
                     try {

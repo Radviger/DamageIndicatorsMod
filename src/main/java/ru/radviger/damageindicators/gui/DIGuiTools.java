@@ -4,11 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderLiving;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.monster.EntityIronGolem;
@@ -43,37 +46,37 @@ public class DIGuiTools extends GuiIngame {
         super(mc);
     }
 
-    public static void addVertexWithUV(double x, double y, double z, double u, double v) {
-        GL11.glTexCoord2d(u, v);
-        GL11.glVertex3d(x, y, z);
+    public static void drawRect(float x, float y, float w, float h) {
+        drawRect(x, y, w, h, 0F, 1F);
+    }
+
+    public static void drawRect(float x, float y, float w, float h, float uStart, float uEnd) {
+        Tessellator t = Tessellator.getInstance();
+        BufferBuilder b = t.getBuffer();
+        b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        b.pos(x, y + h, 0).tex(uStart, 1).endVertex();
+        b.pos(x + w, y + h, 0).tex(uEnd, 1).endVertex();
+        b.pos(x + w, y, 0).tex(uEnd, 0).endVertex();
+        b.pos(x, y, 0).tex(uStart, 0).endVertex();
+        t.draw();
     }
 
     public static void drawBackground(AbstractSkin skin, int locX, int locY) {
-        int backgroundWidth = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH);
-        int backgroundHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDHEIGHT);
-        int backgroundX = locX + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDX);
-        int backgroundY = locY + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDY);
+        int w = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH);
+        int h = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDHEIGHT);
+        int x = locX + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDX);
+        int y = locY + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDY);
         skin.bindTexture(EnumSkinPart.BACKGROUNDID);
-        GL11.glBegin(7);
-        addVertexWithUV(backgroundX, backgroundY + backgroundHeight, 0.0D, 0.0D, 1.0D);
-        addVertexWithUV(backgroundX + backgroundWidth, backgroundY + backgroundHeight, 0.0D, 1.0D, 1.0D);
-        addVertexWithUV(backgroundX + backgroundWidth, backgroundY, 0.0D, 1.0D, 0.0D);
-        addVertexWithUV(backgroundX, backgroundY, 0.0D, 0.0D, 0.0D);
-        GL11.glEnd();
+        drawRect(x, y, w, h);
     }
 
     public static void drawFrame(AbstractSkin skin, int locX, int locY) {
+        int x = locX + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEX);
+        int y = locY + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEY);
+        int w = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEWIDTH);
+        int h = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEHEIGHT);
         skin.bindTexture(EnumSkinPart.FRAMEID);
-        int adjx = locX + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEX);
-        int adjy = locY + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEY);
-        int backgroundWidth = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEWIDTH);
-        int backgroundHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGFRAMEHEIGHT);
-        GL11.glBegin(7);
-        addVertexWithUV(adjx, adjy + backgroundHeight, 0.0D, 0.0D, 1.0D);
-        addVertexWithUV(adjx + backgroundWidth, adjy + backgroundHeight, 0.0D, 1.0D, 1.0D);
-        addVertexWithUV(adjx + backgroundWidth, adjy, 0.0D, 1.0D, 0.0D);
-        addVertexWithUV(adjx, adjy, 0.0D, 0.0D, 0.0D);
-        GL11.glEnd();
+        drawRect(x, y, w, h);
     }
 
     public static void drawHealthBar(AbstractSkin skin, int locX, int locY, int health, int maxHealth, int entityID) {
@@ -83,30 +86,21 @@ public class DIGuiTools extends GuiIngame {
         int healthBarX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGHEALTHBARX);
         int healthBarY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGHEALTHBARY);
         skin.bindTexture(EnumSkinPart.DAMAGEID);
-        GL11.glBegin(7);
-        addVertexWithUV(locX + healthBarX, locY + healthBarY + healthBarHeight, 0.0D, (float) health / (float) maxHealth, 1.0D);
-        addVertexWithUV(locX + healthBarX + healthBarWidth, locY + healthBarY + healthBarHeight, 0.0D, 1.0D, 1.0D);
-        addVertexWithUV(locX + healthBarX + healthBarWidth, locY + healthBarY, 0.0D, 1.0D, 0.0D);
-        addVertexWithUV(locX + healthBarX, locY + healthBarY, 0.0D, (float) health / (float) maxHealth, 0.0D);
-        GL11.glEnd();
+
+        float hp = (float) health / (float) maxHealth;
+        drawRect(locX + healthBarX, locY + healthBarY, healthBarWidth, healthBarHeight, 1F - hp, 1F);
+
         float w;
-        float f;
         if (health < maxHealth) {
-            f = (float) health / maxHealth * healthBarWidth;
-            w = Math.max(f, 0.0F);
+            w = Math.max((float) health / maxHealth * healthBarWidth, 0.0F);
         } else {
             w = (float) healthBarWidth;
             EntityConfigurationEntry.maxHealthOverride.put(entityID, health);
         }
 
-        f = (float) health / (float) maxHealth;
         skin.bindTexture(EnumSkinPart.HEALTHID);
-        GL11.glBegin(7);
-        addVertexWithUV(locX + healthBarX, locY + healthBarY + healthBarHeight, 0.0D, 0.0D, 1.0D);
-        addVertexWithUV((float) (locX + healthBarX) + w, locY + healthBarY + healthBarHeight, 0.0D, f, 1.0D);
-        addVertexWithUV((float) (locX + healthBarX) + w, locY + healthBarY, 0.0D, f, 0.0D);
-        addVertexWithUV(locX + healthBarX, locY + healthBarY, 0.0D, 0.0D, 0.0D);
-        GL11.glEnd();
+
+        drawRect(locX + healthBarX, locY + healthBarY, w, healthBarHeight, 1F - hp, 1F);
     }
 
     public static void drawHealthText(AbstractSkin skin, int locX, int locY, int health, int maxHealth) {
@@ -119,27 +113,25 @@ public class DIGuiTools extends GuiIngame {
         int healthBarHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGHEALTHBARHEIGHT);
         int healthBarX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGHEALTHBARX);
         int healthBarY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGHEALTHBARY);
-        int packedRGB = Integer.parseInt("FFFFFF", 16);
+        int packedRGB = 0xFFFFFF;
 
         try {
             packedRGB = Integer.parseInt((String) skin.getSkinValue(EnumSkinPart.CONFIGTEXTEXTHEALTHCOLOR), 16);
-        } catch (NumberFormatException ignored) {
-        }
+        } catch (NumberFormatException ignored) {}
 
         if (mc.fontRenderer.FONT_HEIGHT + 2 > healthBarHeight) {
-            GL11.glPushMatrix();
+            GlStateManager.pushMatrix();
 
-            GL11.glTranslatef((float) (locX + healthBarX) + ((float) healthBarWidth - (float) mc.fontRenderer.getStringWidth(Health) * 0.7F) / 2.0F, (float) (locY + healthBarY + healthBarHeight) - (float) mc.fontRenderer.FONT_HEIGHT * 0.7F - 0.5F, 0.0F);
-            GL11.glScalef(0.7F, 0.7F, 1.0F);
+            GlStateManager.translate((float) (locX + healthBarX) + ((float) healthBarWidth - (float) mc.fontRenderer.getStringWidth(Health) * 0.7F) / 2.0F, (float) (locY + healthBarY + healthBarHeight) - (float) mc.fontRenderer.FONT_HEIGHT * 0.7F - 0.5F, 0.0F);
+            GlStateManager.scale(0.7F, 0.7F, 1F);
             mc.fontRenderer.drawStringWithShadow(Health, 0.0F, 0.0F, packedRGB);
 
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         } else {
             mc.fontRenderer.drawStringWithShadow(Health, (float) (locX + healthBarX + (healthBarWidth - mc.fontRenderer.getStringWidth(Health)) / 2), (float) (locY + healthBarY + (healthBarHeight - mc.fontRenderer.FONT_HEIGHT) / 2), packedRGB);
         }
 
-        GL11.glColor4d(1.0D, 1.0D, 1.0D, 1.0D);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color(1F, 1F, 1F, 1F);
     }
 
     public static void drawMobPreview(EntityLivingBase el, AbstractSkin skin, int locX, int locY) {
@@ -148,7 +140,7 @@ public class DIGuiTools extends GuiIngame {
         int backgroundHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGBACKGROUNDHEIGHT);
         int MobPreviewOffsetX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX);
         int MobPreviewOffsetY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWY);
-        GL11.glEnable(3089);
+        GL11.glEnable(GL11.GL_SCISSOR_TEST);
 
         try {
             int ex = MathHelper.floor((float) ((locX + MobPreviewOffsetX) * scaledresolution.getScaleFactor()));
@@ -166,60 +158,51 @@ public class DIGuiTools extends GuiIngame {
             t.printStackTrace();
         }
 
-        GL11.glDisable(3089);
+        GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GL11.glPopAttrib();
     }
 
     public static void drawMobTypes(EntityLivingBase el, AbstractSkin skin, int locX, int locY) {
         if (!DIEventBus.enemies.contains(el.getEntityId()) && !(el instanceof IMob)) {
-            GL11.glColor4f(0.0F, 1.0F, 0.0F, 0.6F);
-            GL11.glColor4d(0.0D, 1.0D, 0.0D, 0.6000000238418579D);
+            GlStateManager.color(0F, 1F, 0F, 0.6F);
         } else {
-            GL11.glColor4f(1.0F, 0.0F, 0.0F, 0.6F);
-            GL11.glColor4d(1.0D, 0.0D, 0.0D, 0.6000000238418579D);
+            GlStateManager.color(1F, 0F, 0F, 0.6F);
         }
 
         float step1 = 0.2F;
         float glTexX;
-        if (!el.isNonBoss()) {
-            glTexX = 4.0F * step1;
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 0.6F);
-            GL11.glColor4d(1.0D, 1.0D, 1.0D, 0.6000000238418579D);
-        } else if (el.getCreatureAttribute() != EnumCreatureAttribute.UNDEAD && !el.isEntityUndead()) {
-            if (el.getCreatureAttribute() == EnumCreatureAttribute.ARTHROPOD) {
-                glTexX = 3.0F * step1;
-            } else if (!(el instanceof EntityPlayer) && !(el instanceof EntityWitch) && !(el instanceof EntityVillager) && !(el instanceof EntityIronGolem)) {
-                glTexX = 1.0F * step1;
+        if (el.isNonBoss()) {
+            if (el.getCreatureAttribute() != EnumCreatureAttribute.UNDEAD && !el.isEntityUndead()) {
+                if (el.getCreatureAttribute() == EnumCreatureAttribute.ARTHROPOD) {
+                    glTexX = 3.0F * step1;
+                } else if (el instanceof EntityPlayer || el instanceof EntityWitch || el instanceof EntityVillager || el instanceof EntityIronGolem) {
+                    glTexX = 2.0F * step1;
+                } else {
+                    glTexX = 1.0F * step1;
+                }
             } else {
-                glTexX = 2.0F * step1;
+                glTexX = 0.0F * step1;
             }
         } else {
-            glTexX = 0.0F * step1;
+            glTexX = 4.0F * step1;
+            GlStateManager.color(1F, 1F, 1F, 0.6F);
         }
 
         float adjX = (float) (locX + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEX));
         float adjY = (float) (locY + (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEY));
         skin.bindTexture(EnumSkinPart.TYPEICONSID);
-        GL11.glBegin(7);
-        addVertexWithUV(adjX, adjY, 0.0D, glTexX, 0.0D);
-        addVertexWithUV(adjX, adjY + (float) (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEHEIGHT), 0.0D, glTexX, 1.0D);
-        addVertexWithUV(adjX + (float) (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEWIDTH), adjY + (float) (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEHEIGHT), 0.0D, glTexX + step1, 1.0D);
-        addVertexWithUV(adjX + (float) (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEWIDTH), adjY, 0.0D, glTexX + step1, 0.0D);
-        GL11.glEnd();
+        float w = (float) (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEWIDTH);
+        float h = (float) (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBTYPEHEIGHT);
+        drawRect(adjX, adjY, w, h, glTexX, glTexX + step1);
     }
 
     public static void drawNamePlate(AbstractSkin skin, int locX, int locY) {
-        int NamePlateWidth = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEWIDTH);
-        int NamePlateHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEHEIGHT);
-        int NamePlateX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEX);
-        int NamePlateY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEY);
+        int w = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEWIDTH);
+        int h = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEHEIGHT);
+        int x = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEX);
+        int y = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEY);
         skin.bindTexture(EnumSkinPart.NAMEPLATEID);
-        GL11.glBegin(7);
-        addVertexWithUV(locX + NamePlateX, locY + NamePlateY, 0.0D, 0.0D, 0.0D);
-        addVertexWithUV(locX + NamePlateX, locY + NamePlateY + NamePlateHeight, 0.0D, 0.0D, 1.0D);
-        addVertexWithUV(locX + NamePlateX + NamePlateWidth, locY + NamePlateY + NamePlateHeight, 0.0D, 1.0D, 1.0D);
-        addVertexWithUV(locX + NamePlateX + NamePlateWidth, locY + NamePlateY, 0.0D, 1.0D, 0.0D);
-        GL11.glEnd();
+        drawRect(locX + x, locY + y, w, h);
     }
 
     public static void drawNameText(AbstractSkin skin, String Name, int locX, int locY) {
@@ -227,48 +210,47 @@ public class DIGuiTools extends GuiIngame {
         int NamePlateHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEHEIGHT);
         int NamePlateX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEX);
         int NamePlateY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGNAMEPLATEY);
-        int packedRGB = Integer.parseInt("FFFFFF", 16);
+        int packedRGB = 0xFFFFFF;
 
         try {
             packedRGB = Integer.parseInt((String) skin.getSkinValue(EnumSkinPart.CONFIGTEXTEXTNAMECOLOR), 16);
-        } catch (NumberFormatException e) {
-        }
+        } catch (NumberFormatException ignored) {}
 
         mc.fontRenderer.drawStringWithShadow(Name, (float) (locX + NamePlateX + (NamePlateWidth - mc.fontRenderer.getStringWidth(Name)) / 2), (float) (locY + NamePlateY + (NamePlateHeight - mc.fontRenderer.FONT_HEIGHT) / 2), packedRGB);
-        GL11.glColor4d(1.0D, 1.0D, 1.0D, 1.0D);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+        GlStateManager.color(1F, 1F, 1F, 1F);
     }
 
     public static void DrawPortraitSkinned(int locX, int locY, String Name, int health, int maxHealth, EntityLivingBase el) {
         scaledresolution = new ScaledResolution(mc);
-        int depthzfun = GL11.glGetInteger(2932);
-        boolean depthTest = GL11.glGetBoolean(2929);
-        boolean blend = GL11.glGetBoolean(3042);
+        int depthFun = GL11.glGetInteger(GL11.GL_DEPTH_FUNC);
+        boolean depthTest = GL11.glGetBoolean(GL11.GL_DEPTH_TEST);
+        boolean blend = GL11.glGetBoolean(GL11.GL_BLEND);
 
         AbstractSkin ex = AbstractSkin.getActiveSkin();
         Ordering[] ordering = (Ordering[]) ex.getSkinValue(EnumSkinPart.ORDERING);
 
         for (Ordering element : ordering) {
-            GL11.glPushMatrix();
+            GlStateManager.pushMatrix();
 
-            GL11.glDepthFunc(519);
+            GlStateManager.depthFunc(GL11.GL_ALWAYS);
+
             if (element != Ordering.MOBPREVIEW) {
-                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                GlStateManager.color(1F, 1F, 1F, 1F);
             } else {
-                GL11.glDepthFunc(515);
+                GlStateManager.depthFunc(GL11.GL_LEQUAL);
             }
 
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 0.003662109F);
-            GL11.glEnable(3553);
-            GL11.glDisable(3042);
-            GL11.glDepthMask(true);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glEnable(3553);
-            GL11.glEnable(2929);
-            GL11.glDisable(2896);
-            GL11.glBlendFunc(770, 771);
-            GL11.glEnable(3042);
-            GL11.glEnable(3008);
+            GlStateManager.enableTexture2D();
+            GlStateManager.disableBlend();
+            GlStateManager.depthMask(true);
+            GlStateManager.color(1F, 1F, 1F, 1F);
+            GlStateManager.enableTexture2D();
+            GlStateManager.enableDepth();
+            GlStateManager.disableLighting();
+            GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+            GlStateManager.enableBlend();
+            GlStateManager.enableAlpha();
             boolean drawMobAndBackground = (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH) != 0;
             switch (element) {
                 case BACKGROUND:
@@ -303,33 +285,32 @@ public class DIGuiTools extends GuiIngame {
                     drawNameText(ex, Name, locX, locY);
             }
 
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         }
 
-        GL11.glDepthFunc(515);
-        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-        GL11.glDepthFunc(depthzfun);
+        GlStateManager.color(1F, 1F, 1F, 1F);
+        GlStateManager.depthFunc(depthFun);
         if (depthTest) {
-            GL11.glEnable(2929);
+            GlStateManager.enableDepth();
         } else {
-            GL11.glDisable(2929);
+            GlStateManager.disableDepth();
         }
 
         if (blend) {
-            GL11.glEnable(3042);
+            GlStateManager.enableBlend();
         } else {
-            GL11.glDisable(3042);
+            GlStateManager.disableBlend();
         }
 
-        GL11.glClear(256);
+        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
     }
 
     public static void drawPotionBoxes(EntityLivingBase el) {
         AbstractSkin skin = JarSkinRegistration.getActiveSkin();
-        int potionBoxSidesWidth = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXWIDTH);
-        int PotionBoxHeight = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXHEIGHT);
-        int PotionBoxOffsetX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXX);
-        int PotionBoxOffsetY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXY);
+        int w = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXWIDTH);
+        int h = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXHEIGHT);
+        int offsetX = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXX);
+        int offsetY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGPOTIONBOXY);
 
         boolean ex = false;
         IndicatorsConfig config = IndicatorsConfig.mainInstance();
@@ -341,64 +322,49 @@ public class DIGuiTools extends GuiIngame {
                 if (duration > 0) {
                     Potion potion = e.getPotion();
                     if (potion.hasStatusIcon() && duration > 10) {
-                        GL11.glPushMatrix();
-                        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                        GL11.glColor4d(1.0D, 1.0D, 1.0D, 1.0D);
+                        GlStateManager.pushMatrix();
+                        GlStateManager.color(1F, 1F, 1F, 1F);
 
                         if (!ex) {
                             ex = true;
-                            int adjx1 = config.locX + PotionBoxOffsetX;
-                            int adjy1 = config.locY + PotionBoxOffsetY;
+                            int x = config.locX + offsetX;
+                            int y = config.locY + offsetY;
                             skin.bindTexture(EnumSkinPart.LEFTPOTIONID);
-                            GL11.glBegin(7);
-                            addVertexWithUV(adjx1, adjy1, 0.0D, 0.0D, 0.0D);
-                            addVertexWithUV(adjx1, adjy1 + PotionBoxHeight, 0.0D, 0.0D, 1.0D);
-                            addVertexWithUV(adjx1 + potionBoxSidesWidth, adjy1 + PotionBoxHeight, 0.0D, 1.0D, 1.0D);
-                            addVertexWithUV(adjx1 + potionBoxSidesWidth, adjy1, 0.0D, 1.0D, 0.0D);
-                            GL11.glEnd();
+                            drawRect(x, y, w, h);
                         }
 
-                        int adjx1 = config.locX + PotionBoxOffsetX + position * 20 + potionBoxSidesWidth;
-                        int adjy1 = config.locY + PotionBoxOffsetY;
+                        int x = config.locX + offsetX + position * 20 + w;
+                        int y = config.locY + offsetY;
                         skin.bindTexture(EnumSkinPart.CENTERPOTIONID);
-                        GL11.glBegin(7);
-                        addVertexWithUV(adjx1, adjy1, 0.0D, 0.0D, 0.0D);
-                        addVertexWithUV(adjx1, adjy1 + PotionBoxHeight, 0.0D, 0.0D, 1.0D);
-                        addVertexWithUV(adjx1 + 20, adjy1 + PotionBoxHeight, 0.0D, 1.0D, 1.0D);
-                        addVertexWithUV(adjx1 + 20, adjy1, 0.0D, 1.0D, 0.0D);
-                        GL11.glEnd();
+                        drawRect(x, y, 20, h);
+
                         int iconIndex = potion.getStatusIconIndex();
                         String formattedtime = Potion.getPotionDurationString(e, 1.0F);
-                        int posx = config.locX + PotionBoxOffsetX + position * 20 + potionBoxSidesWidth + 2;
-                        int posy = config.locY + PotionBoxOffsetY + 2;
+                        int posx = config.locX + offsetX + position * 20 + w + 2;
+                        int posy = config.locY + offsetY + 2;
                         int ioffx = (0 + iconIndex % 8) * 18;
                         int ioffy = (0 + iconIndex / 8) * 18 + 198;
-                        int width = PotionBoxHeight - 4;
+                        int width = h - 4;
 
                         mc.getTextureManager().bindTexture(GuiInventory.INVENTORY_BACKGROUND);
                         instance.drawTexturedModalRect(posx, posy, ioffx, ioffy, width, width);
 
-                        GL11.glTranslatef((float) (config.locX + PotionBoxOffsetX + position * 20 + potionBoxSidesWidth + 13 - mc.fontRenderer.getStringWidth(formattedtime) / 2), (float) (config.locY + PotionBoxOffsetY + PotionBoxHeight) - (float) mc.fontRenderer.FONT_HEIGHT * 0.815F, 0.1F);
-                        GL11.glScalef(0.815F, 0.815F, 0.815F);
+                        GlStateManager.translate((float) (config.locX + offsetX + position * 20 + w + 13 - mc.fontRenderer.getStringWidth(formattedtime) / 2), (float) (config.locY + offsetY + h) - (float) mc.fontRenderer.FONT_HEIGHT * 0.815F, 0.1F);
+                        GlStateManager.scale(0.815F, 0.815F, 0.815F);
                         mc.fontRenderer.drawStringWithShadow(formattedtime, 0.0F, 0.0F, new Color(1.0F, 1.0F, 0.5F, 1.0F).getRGB());
-                        GL11.glColor4f(1F, 1F, 1F, 1F);
+                        GlStateManager.color(1F, 1F, 1F, 1F);
 
-                        GL11.glPopMatrix();
+                        GlStateManager.popMatrix();
                         ++position;
                     }
                 }
             }
 
             if (ex) {
-                int var28 = config.locX + PotionBoxOffsetX + position * 20 + potionBoxSidesWidth;
-                int duration = config.locY + PotionBoxOffsetY;
+                int x = config.locX + offsetX + position * 20 + w;
+                int y = config.locY + offsetY;
                 skin.bindTexture(EnumSkinPart.RIGHTPOTIONID);
-                GL11.glBegin(GL11.GL_QUADS);
-                addVertexWithUV(var28, duration, 0.0D, 0.0D, 0.0D);
-                addVertexWithUV(var28, duration + PotionBoxHeight, 0.0D, 0.0D, 1.0D);
-                addVertexWithUV(var28 + potionBoxSidesWidth, duration + PotionBoxHeight, 0.0D, 1.0D, 1.0D);
-                addVertexWithUV(var28 + potionBoxSidesWidth, duration, 0.0D, 1.0D, 0.0D);
-                GL11.glEnd();
+                drawRect(x, y, w, h);
             }
         }
     }
@@ -406,35 +372,35 @@ public class DIGuiTools extends GuiIngame {
     public static void drawTargettedMobPreview(EntityLivingBase el, int locX, int locY) {
         IndicatorsConfig config = IndicatorsConfig.mainInstance();
         Class<? extends EntityLivingBase> cls = el.getClass();
-        EntityConfigurationEntry configentry = Tools.getInstance().getEntityMap().get(cls);
-        if (configentry == null) {
+        EntityConfigurationEntry entry = Tools.getInstance().getEntityMap().get(cls);
+        if (entry == null) {
             Configuration configfile = EntityConfigurationEntry.getEntityConfiguration();
-            configentry = EntityConfigurationEntry.generateDefaultConfiguration(configfile, cls);
-            configentry.save();
-            Tools.getInstance().getEntityMap().put(cls, configentry);
+            entry = EntityConfigurationEntry.generateDefaultConfiguration(configfile, cls);
+            entry.save();
+            Tools.getInstance().getEntityMap().put(cls, entry);
         }
 
-        GL11.glPushMatrix();
+        GlStateManager.pushMatrix();
 
-        GL11.glTranslatef((float) (locX + 25) + configentry.XOffset, (float) (locY + 52) + configentry.YOffset, 1.0F);
+        GlStateManager.translate((float) (locX + 25) + entry.XOffset, (float) (locY + 52) + entry.YOffset, 1.0F);
 
-        GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
-        float ex = (3.0F - el.getEyeHeight()) * configentry.EntitySizeScaling;
-        float finalScale = configentry.ScaleFactor + configentry.ScaleFactor * ex;
+        GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
+        float ex = (3.0F - el.getEyeHeight()) * entry.EntitySizeScaling;
+        float finalScale = entry.ScaleFactor + entry.ScaleFactor * ex;
         if (el.isChild()) {
-            finalScale = (configentry.ScaleFactor + configentry.ScaleFactor * ex) * configentry.BabyScaleFactor;
+            finalScale = (entry.ScaleFactor + entry.ScaleFactor * ex) * entry.BabyScaleFactor;
         }
 
-        GL11.glScalef(finalScale * 0.85F, finalScale * 0.85F, 0.1F);
+        GlStateManager.scale(finalScale * 0.85F, finalScale * 0.85F, 0.1F);
         int hurt = el.hurtTime;
         if (config.lockPosition) {
             float ex1 = el.prevRenderYawOffset;
             el.hurtTime = 0;
             el.prevRenderYawOffset = el.renderYawOffset - 360.0F;
-            GL11.glRotatef(el.renderYawOffset - 360.0F, 0.0F, 1.0F, 0.0F);
-            GL11.glRotatef(-30.0F, 0.0F, 1.0F, 0.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glPushMatrix();
+            GlStateManager.rotate(el.renderYawOffset - 360.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.rotate(-30.0F, 0.0F, 1.0F, 0.0F);
+            GlStateManager.color(1F, 1F, 1F, 1F);
+            GlStateManager.pushMatrix();
 
             try {
                 renderEntity(el);
@@ -442,13 +408,13 @@ public class DIGuiTools extends GuiIngame {
                 t.printStackTrace();
             }
 
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
             el.prevRenderYawOffset = ex1;
         } else {
             el.hurtTime = 0;
-            GL11.glRotatef(180.0F - Minecraft.getMinecraft().player.rotationYaw, 0.0F, -1.0F, 0.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            GL11.glPushMatrix();
+            GlStateManager.rotate(180.0F - Minecraft.getMinecraft().player.rotationYaw, 0.0F, -1.0F, 0.0F);
+            GlStateManager.color(1F, 1F, 1F, 1F);
+            GlStateManager.popMatrix();
 
             try {
                 renderEntity(el);
@@ -456,16 +422,16 @@ public class DIGuiTools extends GuiIngame {
                 t.printStackTrace();
             }
 
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         }
         el.hurtTime = hurt;
 
-        GL11.glPopMatrix();
+        GlStateManager.popMatrix();
     }
 
     public static void renderEntity(EntityLivingBase el) {
-        GL11.glDisable(3042);
-        GL11.glEnable(2929);
+        GlStateManager.enableBlend();
+        GlStateManager.enableDepth();
 
         try {
             float r1 = RenderLiving.NAME_TAG_RANGE;
@@ -483,11 +449,11 @@ public class DIGuiTools extends GuiIngame {
             t.printStackTrace();
         }
 
-        GL11.glEnable(3042);
-        GL11.glClear(256);
-        GL11.glDisable(2929);
-        GL11.glColor4f(255.0F, 255.0F, 255.0F, 255.0F);
-        GL11.glBlendFunc(770, 771);
+        GlStateManager.disableBlend();
+        GlStateManager.clear(GL11.GL_DEPTH_BUFFER_BIT);
+        GlStateManager.disableDepth();
+        GlStateManager.color(1F, 1F, 1F, 1F);
+        GlStateManager.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
         GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
         GlStateManager.disableTexture2D();
         GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);

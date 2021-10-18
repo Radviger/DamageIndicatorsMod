@@ -1,11 +1,10 @@
 package ru.radviger.damageindicators.textures;
 
-import ru.radviger.damageindicators.DamageIndicators;
-import ru.radviger.damageindicators.configuration.IndicatorsConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraftforge.common.config.Configuration;
-import org.lwjgl.opengl.GL11;
+import ru.radviger.damageindicators.DamageIndicators;
+import ru.radviger.damageindicators.configuration.IndicatorsConfig;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -113,7 +112,7 @@ public abstract class AbstractSkin {
            for (EnumSkinPart esp : EnumSet.allOf(EnumSkinPart.class)) {
               if (esp.name().endsWith("ID")) {
                  if (lastSkin.skinMap.get(esp) != null) {
-                    GL11.glDeleteTextures(((DynamicTexture) lastSkin.skinMap.get(esp)).getGlTextureId());
+                    ((DynamicTexture) lastSkin.skinMap.get(esp)).deleteGlTexture();
                  }
 
                  lastSkin.skinMap.put(esp, null);

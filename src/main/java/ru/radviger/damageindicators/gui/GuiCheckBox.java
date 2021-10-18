@@ -2,7 +2,11 @@ package ru.radviger.damageindicators.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
@@ -16,15 +20,6 @@ public class GuiCheckBox extends GuiButton {
         super(id, x, y, w, h, Message);
         this.enabled = true;
         this.displayString = Message;
-    }
-
-    public static void addVertexWithUV(double x, double y, double z, double u, double v) {
-        GL11.glTexCoord2d(u, v);
-        GL11.glVertex3d(x, y, z);
-    }
-
-    public static void addVertex(double x, double y, double z) {
-        GL11.glVertex3d(x, y, z);
     }
 
     public int getWidth() {
@@ -45,10 +40,10 @@ public class GuiCheckBox extends GuiButton {
 
         if (this.enabled) {
             mc.fontRenderer.drawStringWithShadow(this.displayString, (float) this.x, (float) this.y, Color.white.getRGB());
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            GlStateManager.color(1F, 1F, 1F, 1F);
         } else {
             mc.fontRenderer.drawStringWithShadow(this.displayString, (float) this.x, (float) this.y, Color.GRAY.getRGB());
-            GL11.glColor4f(0.5F, 0.5F, 0.5F, 1.0F);
+            GlStateManager.color(0.5F, 0.5F, 0.5F, 1F);
         }
 
         DIGuiTools.widgetsPNG.updateDynamicTexture();
@@ -60,15 +55,18 @@ public class GuiCheckBox extends GuiButton {
 
     }
 
-    public void drawTexturedModalRect128(int par1, int par2, int par3, int par4, int par5, int par6) {
-        float var7 = 0.007813F;
-        float var8 = 0.007813F;
-        GL11.glBegin(7);
-        addVertexWithUV((double) (par1 + 0), (double) (par2 + par6), (double) this.zLevel, (double) ((float) (par3 + 0) * var7), (double) ((float) (par4 + par6) * var8));
-        addVertexWithUV((double) (par1 + par5), (double) (par2 + par6), (double) this.zLevel, (double) ((float) (par3 + par5) * var7), (double) ((float) (par4 + par6) * var8));
-        addVertexWithUV((double) (par1 + par5), (double) (par2 + 0), (double) this.zLevel, (double) ((float) (par3 + par5) * var7), (double) ((float) (par4 + 0) * var8));
-        addVertexWithUV((double) (par1 + 0), (double) (par2 + 0), (double) this.zLevel, (double) ((float) (par3 + 0) * var7), (double) ((float) (par4 + 0) * var8));
-        GL11.glEnd();
+    public void drawTexturedModalRect128(int x, int y, int textureX, int textureY, int w, int h) {
+        float resolutionX = 1F / 128F;
+        float resolutionY = 1F / 128F;
+
+        Tessellator t = Tessellator.getInstance();
+        BufferBuilder b = t.getBuffer();
+        b.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX);
+        b.pos(x + 0, y + h, zLevel).tex((float) (textureX + 0) * resolutionX, (float) (textureY + h) * resolutionY).endVertex();
+        b.pos(x + w, y + h, zLevel).tex((float) (textureX + w) * resolutionX, (float) (textureY + h) * resolutionY).endVertex();
+        b.pos(x + w, y + 0, zLevel).tex((float) (textureX + w) * resolutionX, (float) (textureY + 0) * resolutionY).endVertex();
+        b.pos(x + 0, y + 0, zLevel).tex((float) (textureX + 0) * resolutionX, (float) (textureY + 0) * resolutionY).endVertex();
+        t.draw();
     }
 
     public boolean isChecked() {

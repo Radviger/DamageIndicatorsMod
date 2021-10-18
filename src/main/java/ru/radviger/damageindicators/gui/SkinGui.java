@@ -1,5 +1,6 @@
 package ru.radviger.damageindicators.gui;
 
+import net.minecraft.client.renderer.GlStateManager;
 import ru.radviger.damageindicators.textures.AbstractSkin;
 import ru.radviger.damageindicators.textures.EnumSkinPart;
 import ru.radviger.damageindicators.configuration.IndicatorsConfig;
@@ -51,9 +52,9 @@ public class SkinGui extends GuiScreen {
         this.SkinSlot.drawScreen(par1, par2, par3);
         super.drawScreen(par1, par2, par3);
         GL11.glPushAttrib(278529);
-        GL11.glPushMatrix();
-        GL11.glTranslatef((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
-        GL11.glScalef(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, 1.0F);
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
+        GlStateManager.scale(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, 1.0F);
         float headPosX = (float) IndicatorsConfig.mainInstance().locX;
         headPosX += ((float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWX) + (float) (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGBACKGROUNDWIDTH) / 2.0F) * IndicatorsConfig.mainInstance().guiScale;
         float headPosY = (float) IndicatorsConfig.mainInstance().locY;
@@ -79,7 +80,7 @@ public class SkinGui extends GuiScreen {
         this.mc.player.rotationPitch = f4;
         this.mc.player.prevRotationYawHead = f5;
         this.mc.player.rotationYawHead = f6;
-        GL11.glPopAttrib();
-        GL11.glPopMatrix();
+        GlStateManager.popAttrib();
+        GlStateManager.popMatrix();
     }
 }

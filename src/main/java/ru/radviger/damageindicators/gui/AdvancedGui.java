@@ -1,5 +1,6 @@
 package ru.radviger.damageindicators.gui;
 
+import net.minecraft.client.renderer.GlStateManager;
 import ru.radviger.damageindicators.textures.AbstractSkin;
 import ru.radviger.damageindicators.textures.EnumSkinPart;
 import ru.radviger.damageindicators.configuration.IndicatorsConfig;
@@ -230,7 +231,7 @@ public class AdvancedGui extends GuiScreen {
                 transparency.drawTextBox();
             }
 
-            GL11.glPushMatrix();
+            GlStateManager.pushMatrix();
             if (this.ece == null) {
                 this.ece = this.guiEntityList.visibleEntities.get(this.selectedEntry);
             }
@@ -250,7 +251,7 @@ public class AdvancedGui extends GuiScreen {
             }
 
             this.zLevel += 0.1F;
-            GL11.glPushMatrix();
+            GlStateManager.pushMatrix();
             float var16 = IndicatorsConfig.mainInstance().guiScale;
             GL11.glPushAttrib(8192);
 
@@ -282,12 +283,12 @@ public class AdvancedGui extends GuiScreen {
                 t.printStackTrace();
             }
 
-            GL11.glPopAttrib();
+            GlStateManager.popAttrib();
             this.zLevel += 0.1F;
             IndicatorsConfig.mainInstance().guiScale = var16;
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
             super.drawScreen(mouseX, mouseY, elapsedTime);
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
 
             try {
                 if (this.controlLocations != null) {
