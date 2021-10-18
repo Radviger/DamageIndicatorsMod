@@ -4,14 +4,13 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.gui.inventory.GuiInventory;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.OpenGlHelper;
-import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.*;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderLiving;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.EnumCreatureAttribute;
 import net.minecraft.entity.monster.EntityIronGolem;
@@ -35,6 +34,7 @@ import ru.radviger.damageindicators.textures.Ordering;
 
 import java.awt.*;
 import java.util.List;
+import java.util.Map;
 
 public class DIGuiTools extends GuiIngame {
     private static final Minecraft mc = Minecraft.getMinecraft();
@@ -117,7 +117,8 @@ public class DIGuiTools extends GuiIngame {
 
         try {
             packedRGB = Integer.parseInt((String) skin.getSkinValue(EnumSkinPart.CONFIGTEXTEXTHEALTHCOLOR), 16);
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
 
         if (mc.fontRenderer.FONT_HEIGHT + 2 > healthBarHeight) {
             GlStateManager.pushMatrix();
@@ -142,21 +143,20 @@ public class DIGuiTools extends GuiIngame {
         int MobPreviewOffsetY = (Integer) skin.getSkinValue(EnumSkinPart.CONFIGMOBPREVIEWY);
         GL11.glEnable(GL11.GL_SCISSOR_TEST);
 
-        try {
-            int ex = MathHelper.floor((float) ((locX + MobPreviewOffsetX) * scaledresolution.getScaleFactor()));
-            int boxWidth = MathHelper.floor((float) (backgroundWidth * scaledresolution.getScaleFactor()));
-            int boxHeight = MathHelper.floor((float) (backgroundHeight * scaledresolution.getScaleFactor()));
-            int boxLocY = MathHelper.floor((float) ((locY + MobPreviewOffsetY) * scaledresolution.getScaleFactor()));
-            if (!(mc.currentScreen instanceof AdvancedGui)) {
-                boxWidth = (int) ((float) boxWidth * IndicatorsConfig.mainInstance().guiScale);
-                boxHeight = (int) ((float) boxHeight * IndicatorsConfig.mainInstance().guiScale);
-            }
-
-            GL11.glScissor(ex, Minecraft.getMinecraft().displayHeight - boxLocY - boxHeight, boxWidth, boxHeight);
-            drawTargetedMobPreview(el, locX + MobPreviewOffsetX, locY + MobPreviewOffsetY);
-        } catch (Throwable t) {
-            t.printStackTrace();
+        int ex = MathHelper.floor((float) ((locX + MobPreviewOffsetX) * scaledresolution.getScaleFactor()));
+        int boxWidth = MathHelper.floor((float) (backgroundWidth * scaledresolution.getScaleFactor()));
+        int boxHeight = MathHelper.floor((float) (backgroundHeight * scaledresolution.getScaleFactor()));
+        int boxLocY = MathHelper.floor((float) ((locY + MobPreviewOffsetY) * scaledresolution.getScaleFactor()));
+        if (!(mc.currentScreen instanceof AdvancedGui)) {
+            IndicatorsConfig config = IndicatorsConfig.mainInstance();
+            boxWidth = (int) ((float) boxWidth * config.guiScale);
+            boxHeight = (int) ((float) boxHeight * config.guiScale);
         }
+
+        Minecraft mc = Minecraft.getMinecraft();
+        GL11.glScissor(ex, mc.displayHeight - boxLocY - boxHeight, boxWidth, boxHeight);
+
+        drawTargetedMobPreview(el, locX + MobPreviewOffsetX, locY + MobPreviewOffsetY);
 
         GL11.glDisable(GL11.GL_SCISSOR_TEST);
         GL11.glPopAttrib();
@@ -214,7 +214,8 @@ public class DIGuiTools extends GuiIngame {
 
         try {
             packedRGB = Integer.parseInt((String) skin.getSkinValue(EnumSkinPart.CONFIGTEXTEXTNAMECOLOR), 16);
-        } catch (NumberFormatException ignored) {}
+        } catch (NumberFormatException ignored) {
+        }
 
         mc.fontRenderer.drawStringWithShadow(Name, (float) (locX + NamePlateX + (NamePlateWidth - mc.fontRenderer.getStringWidth(Name)) / 2), (float) (locY + NamePlateY + (NamePlateHeight - mc.fontRenderer.FONT_HEIGHT) / 2), packedRGB);
         GlStateManager.color(1F, 1F, 1F, 1F);
@@ -234,10 +235,10 @@ public class DIGuiTools extends GuiIngame {
 
             GlStateManager.depthFunc(GL11.GL_ALWAYS);
 
-            if (element != Ordering.MOBPREVIEW) {
-                GlStateManager.color(1F, 1F, 1F, 1F);
-            } else {
+            if (element == Ordering.MOBPREVIEW) {
                 GlStateManager.depthFunc(GL11.GL_LEQUAL);
+            } else {
+                GlStateManager.color(1F, 1F, 1F, 1F);
             }
 
             OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, 240.0F, 0.003662109F);
@@ -372,12 +373,13 @@ public class DIGuiTools extends GuiIngame {
     public static void drawTargetedMobPreview(EntityLivingBase el, int locX, int locY) {
         IndicatorsConfig config = IndicatorsConfig.mainInstance();
         Class<? extends EntityLivingBase> cls = el.getClass();
-        EntityConfigurationEntry entry = Tools.getInstance().getEntityMap().get(cls);
+        Map<Class<? extends Entity>, EntityConfigurationEntry> entityMap = Tools.getInstance().getEntityMap();
+        EntityConfigurationEntry entry = entityMap.get(cls);
         if (entry == null) {
             Configuration cfg = EntityConfigurationEntry.getEntityConfiguration();
             entry = EntityConfigurationEntry.generateDefaultConfiguration(cfg, cls);
             entry.save();
-            Tools.getInstance().getEntityMap().put(cls, entry);
+            entityMap.put(cls, entry);
         }
 
         GlStateManager.pushMatrix();
@@ -385,48 +387,44 @@ public class DIGuiTools extends GuiIngame {
         GlStateManager.translate((float) (locX + 25) + entry.offsetX, (float) (locY + 52) + entry.offsetY, 1.0F);
 
         GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
+
         float ex = (3.0F - el.getEyeHeight()) * entry.sizeScaling;
-        float finalScale = entry.scale + entry.scale * ex;
+        float scale = entry.scale + entry.scale * ex * 0.85F;
         if (el.isChild()) {
-            finalScale = (entry.scale + entry.scale * ex) * entry.babyScale;
+            scale *= entry.babyScale;
         }
 
-        GlStateManager.scale(finalScale * 0.85F, finalScale * 0.85F, 0.1F);
+        GlStateManager.scale(scale, scale, 0.1F);
         int hurt = el.hurtTime;
+        el.hurtTime = 0;
+
+        float ex1 = el.prevRenderYawOffset;
         if (config.lockPosition) {
-            float ex1 = el.prevRenderYawOffset;
-            el.hurtTime = 0;
             el.prevRenderYawOffset = el.renderYawOffset - 360.0F;
             GlStateManager.rotate(el.renderYawOffset - 360.0F, 0.0F, 1.0F, 0.0F);
             GlStateManager.rotate(-30.0F, 0.0F, 1.0F, 0.0F);
-            GlStateManager.color(1F, 1F, 1F, 1F);
-            GlStateManager.pushMatrix();
-
-            try {
-                renderEntity(el);
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-
-            GlStateManager.popMatrix();
-            el.prevRenderYawOffset = ex1;
         } else {
-            el.hurtTime = 0;
             GlStateManager.rotate(180.0F - Minecraft.getMinecraft().player.rotationYaw, 0.0F, -1.0F, 0.0F);
-            GlStateManager.color(1F, 1F, 1F, 1F);
-            GlStateManager.pushMatrix();
-
-            try {
-                renderEntity(el);
-            } catch (Throwable t) {
-                t.printStackTrace();
-            }
-
-            GlStateManager.popMatrix();
         }
+        GlStateManager.color(1F, 1F, 1F, 1F);
+
+        GlStateManager.pushMatrix();
+        GlStateManager.loadIdentity();
+        RenderHelper.enableGUIStandardItemLighting();
+        GlStateManager.popMatrix();
+
+        renderEntity(el);
+
+        el.prevRenderYawOffset = ex1;
         el.hurtTime = hurt;
 
         GlStateManager.popMatrix();
+
+        RenderHelper.disableStandardItemLighting();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.disableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
     public static void renderEntity(EntityLivingBase el) {
@@ -438,7 +436,8 @@ public class DIGuiTools extends GuiIngame {
             float r2 = RenderLiving.NAME_TAG_RANGE_SNEAK;
             RenderLiving.NAME_TAG_RANGE = 0.0F;
             RenderLiving.NAME_TAG_RANGE_SNEAK = 0.0F;
-            Render<EntityLivingBase> render = Minecraft.getMinecraft().getRenderManager().getEntityRenderObject(el);
+            RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
+            Render<EntityLivingBase> render = renderManager.getEntityRenderObject(el);
             if (render != null) {
                 render.doRender(el, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F);
             }

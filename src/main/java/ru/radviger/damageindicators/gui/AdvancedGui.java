@@ -65,20 +65,13 @@ public class AdvancedGui extends GuiScreen {
 
     @Override
     public void initGui() {
-        this.popoffsetting = IndicatorsConfig.mainInstance().popOffsEnabled;
-        this.portraitsetting = IndicatorsConfig.mainInstance().portraitEnabled;
-        IndicatorsConfig.mainInstance().popOffsEnabled = false;
-        IndicatorsConfig.mainInstance().portraitEnabled = false;
-        GuiEntityList.entities = new ArrayList(Tools.getInstance().getEntityMap().values());
-        Iterator it = GuiEntityList.entities.iterator();
-
-        while (it.hasNext()) {
-            EntityConfigurationEntry ece = (EntityConfigurationEntry) it.next();
-            if (EntityPlayer.class.isAssignableFrom(ece.clazz)) {
-                it.remove();
-            }
-        }
-
+        IndicatorsConfig config = IndicatorsConfig.mainInstance();
+        this.popoffsetting = config.popOffsEnabled;
+        this.portraitsetting = config.portraitEnabled;
+        config.popOffsEnabled = false;
+        config.portraitEnabled = false;
+        GuiEntityList.entities = new ArrayList<>(Tools.getInstance().getEntityMap().values());
+        GuiEntityList.entities.removeIf(ece -> EntityPlayer.class.isAssignableFrom(ece.clazz));
         GuiEntityList.entities.sort(this.comparator);
         this.guiEntityList = new GuiEntityList(this.mc, 120, this.height, 16, this.height - 16, 10, 25, this);
         this.fontRenderer.drawStringWithShadow(GuiEntityList.entities.get(this.selectedEntry).clazz.getName(), 225.0F, 160.0F, 10066431);
@@ -370,9 +363,10 @@ public class AdvancedGui extends GuiScreen {
 
         EntityConfigurationEntry newEce1 = new EntityConfigurationEntry(current.clazz, Float.parseFloat(this.textboxes.get(0).getText()), Float.parseFloat(this.textboxes.get(1).getText()), Float.parseFloat(this.textboxes.get(2).getText()), Float.parseFloat(this.textboxes.get(3).getText()), Float.parseFloat(this.textboxes.get(4).getText()), this.textboxes.get(5).getText(), ((GuiCheckBox) this.buttonList.get(0)).isChecked(), current.maxHP, current.eyeHeight);
         if (!current.equals(newEce1)) {
-            Tools.getInstance().getEntityMap().put(newEce1.clazz, newEce1);
+            Map<Class<? extends Entity>, EntityConfigurationEntry> entityMap = Tools.getInstance().getEntityMap();
+            entityMap.put(newEce1.clazz, newEce1);
             EntityConfigurationEntry.saveEntityConfig(newEce1);
-            GuiEntityList.entities = new ArrayList<>(Tools.getInstance().getEntityMap().values());
+            GuiEntityList.entities = new ArrayList<>(entityMap.values());
             GuiEntityList.entities.sort(this.comparator);
             this.guiEntityList.visibleEntities.set(this.selectedEntry, newEce1);
         }

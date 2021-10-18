@@ -70,14 +70,15 @@ public class DIEventBus {
                 }
             }
 
+            Map<Class<? extends Entity>, EntityConfigurationEntry> entityMap = Tools.getInstance().getEntityMap();
             if (el != null) {
                 Class<? extends EntityLivingBase> clazz = el.getClass();
-                EntityConfigurationEntry entry = Tools.getInstance().getEntityMap().get(clazz);
+                EntityConfigurationEntry entry = entityMap.get(clazz);
                 if (entry == null) {
                     Configuration cfg = EntityConfigurationEntry.getEntityConfiguration();
                     entry = EntityConfigurationEntry.generateDefaultConfiguration(cfg, clazz);
                     entry.save();
-                    Tools.getInstance().getEntityMap().put(clazz, entry);
+                    entityMap.put(clazz, entry);
                 }
 
                 if (entry.ignore) {
@@ -123,21 +124,21 @@ public class DIEventBus {
                 }
 
                 lastTargeted = el.getEntityId();
-                Class<? extends Entity> entityclass = el.getClass();
-                EntityConfigurationEntry configentry = Tools.getInstance().getEntityMap().get(entityclass);
-                if (configentry.maxHP == -1 || configentry.eyeHeight == -1.0F) {
-                    configentry.eyeHeight = el.getEyeHeight();
-                    configentry.maxHP = MathHelper.floor(Math.ceil(el.getMaxHealth()));
+                Class<? extends Entity> clazz = el.getClass();
+                EntityConfigurationEntry entry = entityMap.get(clazz);
+                if (entry.maxHP == -1 || entry.eyeHeight == -1.0F) {
+                    entry.eyeHeight = el.getEyeHeight();
+                    entry.maxHP = MathHelper.floor(Math.ceil(el.getMaxHealth()));
                 }
 
-                if (configentry.maxHP != MathHelper.floor(Math.ceil(el.getMaxHealth()))) {
-                    configentry.maxHP = MathHelper.floor(Math.ceil(el.getMaxHealth()));
+                if (entry.maxHP != MathHelper.floor(Math.ceil(el.getMaxHealth()))) {
+                    entry.maxHP = MathHelper.floor(Math.ceil(el.getMaxHealth()));
                 }
 
                 String name = el.getName();
 
-                if (!(el instanceof EntityPlayer) && configentry.nameOverride != null && !configentry.nameOverride.isEmpty()) {
-                    name = configentry.nameOverride;
+                if (!(el instanceof EntityPlayer) && entry.nameOverride != null && !entry.nameOverride.isEmpty()) {
+                    name = entry.nameOverride;
                 }
 
                 GlStateManager.pushMatrix();
@@ -292,22 +293,23 @@ public class DIEventBus {
             mc.displayGuiScreen(gui);
         }
 
-        boolean flag = IndicatorsConfig.mainInstance().alternateRenderingMethod && event.getType() == ElementType.CHAT;
-        if (!flag) {
-            flag = event.getType() == ElementType.PORTAL && !IndicatorsConfig.mainInstance().alternateRenderingMethod;
+        IndicatorsConfig config = IndicatorsConfig.mainInstance();
+        boolean visible = config.alternateRenderingMethod && event.getType() == ElementType.CHAT;
+        if (!visible) {
+            visible = event.getType() == ElementType.PORTAL && !config.alternateRenderingMethod;
         }
 
-        if (event.getType() == ElementType.BOSSHEALTH && IndicatorsConfig.mainInstance().supressBossUI) {
+        if (event.getType() == ElementType.BOSSHEALTH && config.supressBossUI) {
             if (event.isCancelable()) {
                 event.setCanceled(true);
             }
-        } else if (flag && mc.player != null) {
+        } else if (visible && mc.player != null) {
             if (mc.gameSettings.hideGUI) {
                 lastTargeted = -1;
                 return;
             }
 
-            if (mc.gameSettings.showDebugInfo && IndicatorsConfig.mainInstance().DebugHidesWindow) {
+            if (mc.gameSettings.showDebugInfo && config.DebugHidesWindow) {
                 lastTargeted = -1;
                 return;
             }
@@ -322,15 +324,15 @@ public class DIEventBus {
                 searched = true;
             }
 
-            if (IndicatorsConfig.mainInstance().portraitEnabled && !DIPermissions.Handler.allDisabled && !DIPermissions.Handler.mouseOversDisabled) {
-                if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
+            if (config.portraitEnabled && !DIPermissions.Handler.allDisabled && !DIPermissions.Handler.mouseOversDisabled) {
+                if (config.highCompatibilityMod) {
                     GL11.glPushAttrib(GL11.GL_ALL_ATTRIB_BITS);
                     GL11.glPushClientAttrib(GL11.GL_ALL_CLIENT_ATTRIB_BITS);
                 }
 
                 updateMouseOversSkinned(event.getPartialTicks());
 
-                if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
+                if (config.highCompatibilityMod) {
                     GL11.glPopClientAttrib();
                     GL11.glPopAttrib();
                 }
