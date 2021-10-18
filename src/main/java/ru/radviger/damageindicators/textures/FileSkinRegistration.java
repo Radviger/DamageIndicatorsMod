@@ -44,7 +44,7 @@ public class FileSkinRegistration extends AbstractSkin {
         try {
             File[] var1 = path.listFiles();
 
-           for (File file : var1) {
+            for (File file : var1) {
                 if (file.isDirectory()) {
                     File[] var5 = file.listFiles();
 
@@ -60,8 +60,8 @@ public class FileSkinRegistration extends AbstractSkin {
                     }
                 }
             }
-        } catch (Exception var10) {
-            var10.getStackTrace();
+        } catch (Exception e) {
+            e.getStackTrace();
         }
 
     }
@@ -92,13 +92,13 @@ public class FileSkinRegistration extends AbstractSkin {
     }
 
     private DynamicTexture checkAndReload(EnumSkinPart enumID, EnumSkinPart enumName) {
-        DynamicTexture ret = (DynamicTexture) this.getSkinValue(enumID);
+        DynamicTexture ret = (DynamicTexture) getSkinValue(enumID);
         if (ret == null) {
             try {
-                String tmp = (String) this.getSkinValue(enumName);
-                ret = this.setupTexture(fixDim(ImageIO.read(this.getFileInputStream(tmp))), enumID);
-            } catch (Exception var5) {
-                var5.printStackTrace();
+                String tmp = (String) getSkinValue(enumName);
+                return setupTexture(fixDim(ImageIO.read(getFileInputStream(tmp))), enumID);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 

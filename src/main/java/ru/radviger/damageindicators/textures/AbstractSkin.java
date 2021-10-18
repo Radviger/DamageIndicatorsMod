@@ -46,7 +46,8 @@ public abstract class AbstractSkin {
         } else {
             try {
                 resized = new BufferedImage(scaledwidth, scaledheight, nonpoweroftwo.getType());
-            } catch (Throwable var7) {
+            } catch (Throwable t) {
+                t.printStackTrace();
                 resized = new BufferedImage(scaledwidth, scaledheight, 5);
             }
 
@@ -132,15 +133,10 @@ public abstract class AbstractSkin {
 
         if (!SKINS.containsKey(skin)) {
             try {
-                if (skin.startsWith("file:")) {
-                    SKINS.put(skin, new FileSkinRegistration(skin));
-                } else {
-                    SKINS.put(skin, new JarSkinRegistration(skin));
-                }
-
+                SKINS.put(skin, skin.startsWith("file:") ? new FileSkinRegistration(skin) : new JarSkinRegistration(skin));
                 SKINS.get(skin).loadSkin();
-            } catch (Exception var2) {
-                var2.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 

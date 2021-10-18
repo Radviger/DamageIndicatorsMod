@@ -45,8 +45,8 @@ public class DamageIndicators {
 
         try {
             IndicatorsConfig.loadConfig(event.getSuggestedConfigurationFile());
-        } catch (Throwable var4) {
-            var4.printStackTrace();
+        } catch (Throwable t) {
+            t.printStackTrace();
             if (!event.getSuggestedConfigurationFile().delete()) {
                 event.getSuggestedConfigurationFile().deleteOnExit();
             }
@@ -54,15 +54,10 @@ public class DamageIndicators {
             IndicatorsConfig.loadConfig(event.getSuggestedConfigurationFile());
         }
 
-        try {
-            network.registerMessage(DIPermissions.Handler.class, DIPermissions.class, this.packetID, Side.SERVER);
-            network.registerMessage(DIPermissions.Handler.class, DIPermissions.class, this.packetID++, Side.CLIENT);
-            network.registerMessage(DIPotionEffects.Handler.class, DIPotionEffects.class, this.packetID, Side.SERVER);
-            network.registerMessage(DIPotionEffects.Handler.class, DIPotionEffects.class, this.packetID++, Side.CLIENT);
-        } catch (Throwable var3) {
-            var3.printStackTrace();
-        }
-
+        network.registerMessage(DIPermissions.Handler.class, DIPermissions.class, this.packetID, Side.SERVER);
+        network.registerMessage(DIPermissions.Handler.class, DIPermissions.class, this.packetID++, Side.CLIENT);
+        network.registerMessage(DIPotionEffects.Handler.class, DIPotionEffects.class, this.packetID, Side.SERVER);
+        network.registerMessage(DIPotionEffects.Handler.class, DIPotionEffects.class, this.packetID++, Side.CLIENT);
     }
 
     @EventHandler
@@ -76,11 +71,9 @@ public class DamageIndicators {
 
     @EventHandler
     public void serverStarted(FMLServerStartedEvent evt) {
-        try {
-            ServerCommandManager scm = (ServerCommandManager) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager();
-            if (!scm.getCommands().containsKey(this.cdi.getName())) {
-                scm.registerCommand(this.cdi);
-            }
-        } catch (Throwable ignored) {}
+        ServerCommandManager scm = (ServerCommandManager) FMLCommonHandler.instance().getMinecraftServerInstance().getCommandManager();
+        if (!scm.getCommands().containsKey(cdi.getName())) {
+            scm.registerCommand(cdi);
+        }
     }
 }

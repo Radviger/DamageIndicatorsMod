@@ -93,16 +93,16 @@ public class IndicatorsConfig {
             prop.set(newConfig.alwaysRender);
             prop = config.get("PopOffs.Behavior", "UpdateBehavior", newConfig.checkForUpdates);
             prop.set(newConfig.checkForUpdates);
-            prop = config.get("PopOffs.Appearance", "Transparency", (double) newConfig.transparency);
-            prop.set((double) newConfig.transparency);
+            prop = config.get("PopOffs.Appearance", "Transparency", newConfig.transparency);
+            prop.set(newConfig.transparency);
             prop = config.get("Portrait.Appearance", "Lock_Mob_Position", newConfig.lockPosition);
             prop.set(newConfig.lockPosition);
-            prop = config.get("Portrait.Appearance", "Gui_Scale", (double) newConfig.guiScale);
-            prop.set((double) newConfig.guiScale);
+            prop = config.get("Portrait.Appearance", "Gui_Scale", newConfig.guiScale);
+            prop.set(newConfig.guiScale);
             prop = config.get("PopOffs.Appearance", "Build_TexturePack_Font", newConfig.CustomFont);
             prop.set(newConfig.CustomFont);
-            prop = config.get("PopOffs.Appearance", "Scale_Smoothing_Filter", (double) newConfig.ScaleFilter);
-            prop.set((double) newConfig.ScaleFilter);
+            prop = config.get("PopOffs.Appearance", "Scale_Smoothing_Filter", newConfig.ScaleFilter);
+            prop.set(newConfig.ScaleFilter);
             newConfig.formattedDIColor = Integer.toHexString(newConfig.DIColor);
             prop = config.get("PopOffs.Appearance", "Color", newConfig.formattedDIColor);
             prop.set(newConfig.formattedDIColor);
@@ -112,16 +112,16 @@ public class IndicatorsConfig {
             prop.set(newConfig.mouseoverRange);
             prop = config.get("Portrait.Behavior", "Enable", newConfig.portraitEnabled);
             prop.set(newConfig.portraitEnabled);
-            prop = config.get("PopOffs.Behavior", "Gravity", (double) newConfig.Gravity);
-            prop.set((double) newConfig.Gravity);
+            prop = config.get("PopOffs.Behavior", "Gravity", newConfig.Gravity);
+            prop.set(newConfig.Gravity);
             prop = config.get("PopOffs.Behavior", "Enabled", newConfig.popOffsEnabled);
             prop.set(newConfig.popOffsEnabled);
-            prop = config.get("PopOffs.Behavior", "Bounce_Strength", (double) newConfig.BounceStrength);
-            prop.set((double) newConfig.BounceStrength);
+            prop = config.get("PopOffs.Behavior", "Bounce_Strength", newConfig.BounceStrength);
+            prop.set(newConfig.BounceStrength);
             prop = config.get("PopOffs.Behavior", "Range", newConfig.packetrange);
             prop.set(newConfig.packetrange);
-            prop = config.get("PopOffs.Behavior", "Size", (double) newConfig.Size);
-            prop.set((double) newConfig.Size);
+            prop = config.get("PopOffs.Behavior", "Size", newConfig.Size);
+            prop.set(newConfig.Size);
             prop = config.get("Portrait.Behavior", "Portrait_Lifetime", newConfig.portraitLifetime);
             prop.set(newConfig.portraitLifetime);
             prop = config.get("Portrait.Behavior", "Show Potion Effects", newConfig.enablePotionEffects);
@@ -141,10 +141,9 @@ public class IndicatorsConfig {
             prop = config.get("Internal", "version", "");
             prop.set("1");
             config.save();
-        } catch (Throwable var3) {
-            var3.printStackTrace();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
-
     }
 
     public static IndicatorsConfig mainInstance() {
@@ -183,19 +182,19 @@ public class IndicatorsConfig {
             this.checkForUpdates = (byte) prop.getInt(this.checkForUpdates);
             prop = config.get("Portrait.Behavior", "SupressBossHealth", this.supressBossUI);
             this.supressBossUI = prop.getBoolean(this.supressBossUI);
-            prop = config.get("PopOffs.Appearance", "Transparency", (double) this.transparency);
-            this.transparency = (float) prop.getDouble((double) this.transparency);
-            prop = config.get("Portrait.Appearance", "Gui_Scale", (double) this.guiScale);
-            this.guiScale = (float) prop.getDouble((double) this.guiScale);
-            prop.set((double) this.guiScale);
+            prop = config.get("PopOffs.Appearance", "Transparency", this.transparency);
+            this.transparency = (float) prop.getDouble(this.transparency);
+            prop = config.get("Portrait.Appearance", "Gui_Scale", this.guiScale);
+            this.guiScale = (float) prop.getDouble(this.guiScale);
+            prop.set(this.guiScale);
             prop = config.get("Portrait.Appearance", "Lock_Mob_Position", this.lockPosition);
             this.lockPosition = prop.getBoolean(this.lockPosition);
             prop.set(this.lockPosition);
             prop = config.get("PopOffs.Appearance", "Build_TexturePack_Font", this.CustomFont);
             this.CustomFont = prop.getBoolean(this.CustomFont);
             prop.set(this.CustomFont);
-            prop = config.get("PopOffs.Appearance", "Scale_Smoothing_Filter", (double) this.ScaleFilter);
-            this.ScaleFilter = (float) prop.getDouble((double) this.ScaleFilter);
+            prop = config.get("PopOffs.Appearance", "Scale_Smoothing_Filter", this.ScaleFilter);
+            this.ScaleFilter = (float) prop.getDouble(this.ScaleFilter);
             prop = config.get("PopOffs.Appearance", "Color", this.formattedDIColor);
             this.formattedDIColor = prop.getString();
             this.DIColor = (int) Long.parseLong(this.formattedDIColor, 16);
@@ -219,31 +218,31 @@ public class IndicatorsConfig {
 
             try {
                 this.Gravity = Float.parseFloat(prop.getString());
-            } catch (NumberFormatException var7) {
+            } catch (NumberFormatException e) {
                 this.Gravity = 0.8F;
-                prop.set((double) this.Gravity);
+                prop.set(this.Gravity);
             }
 
             prop = config.get("PopOffs.Behavior", "Enabled", this.popOffsEnabled);
             this.popOffsEnabled = prop.getBoolean(this.popOffsEnabled);
-            prop = config.get("PopOffs.Behavior", "Bounce_Strength", (double) this.BounceStrength);
+            prop = config.get("PopOffs.Behavior", "Bounce_Strength", this.BounceStrength);
 
             try {
                 this.BounceStrength = Float.parseFloat(prop.getString());
-            } catch (NumberFormatException var6) {
+            } catch (NumberFormatException e) {
                 this.BounceStrength = 1.5F;
-                prop.set((double) this.BounceStrength);
+                prop.set(this.BounceStrength);
             }
 
             prop = config.get("PopOffs.Behavior", "Range", this.packetrange);
             this.packetrange = prop.getInt(this.packetrange);
-            prop = config.get("PopOffs.Behavior", "Size", (double) this.Size);
+            prop = config.get("PopOffs.Behavior", "Size", this.Size);
 
             try {
                 this.Size = Float.parseFloat(prop.getString());
-            } catch (NumberFormatException var5) {
+            } catch (NumberFormatException e) {
                 this.Size = 3.0F;
-                prop.set((double) this.Size);
+                prop.set(this.Size);
             }
 
             prop = config.get("Portrait.Behavior", "Portrait_Lifetime", this.portraitLifetime);
@@ -263,8 +262,8 @@ public class IndicatorsConfig {
             prop = config.get("Internal", "version", "");
             prop.set("1");
             config.save();
-        } catch (Throwable var8) {
-            var8.printStackTrace();
+        } catch (Throwable t) {
+            t.printStackTrace();
         }
 
     }

@@ -209,11 +209,11 @@ public class AdvancedGui extends GuiScreen {
 
                     try {
                         this.tempMob = (EntityLivingBase) this.ece.Clazz.getConstructor(World.class).newInstance(this.mc.world);
-                    } catch (InstantiationException var18) {
+                    } catch (InstantiationException e) {
                         this.tempMob = null;
                     }
-                } catch (Throwable var19) {
-                    Logger.getLogger(AdvancedGui.class.getName()).log(Level.SEVERE, null, var19);
+                } catch (Throwable t) {
+                    Logger.getLogger(AdvancedGui.class.getName()).log(Level.SEVERE, null, t);
                 }
             }
 
@@ -278,7 +278,8 @@ public class AdvancedGui extends GuiScreen {
                 this.tempMob.rotationPitch = f4;
                 this.tempMob.prevRotationYawHead = f5;
                 this.tempMob.rotationYawHead = f6;
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
 
             GL11.glPopAttrib();
@@ -321,11 +322,13 @@ public class AdvancedGui extends GuiScreen {
                                 this.tooltip.drawStrings(this.fontRenderer);
                                 break;
                             }
-                        } catch (Throwable ignored) {
+                        } catch (Throwable t) {
+                            t.printStackTrace();
                         }
                     }
                 }
-            } catch (Throwable ignored) {
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
         }
 
@@ -357,7 +360,7 @@ public class AdvancedGui extends GuiScreen {
                 if (textbox != this.textboxes.get(5)) {
                     try {
                         textbox.setText("" + Float.valueOf(textbox.getText()));
-                    } catch (Throwable var6) {
+                    } catch (Throwable t) {
                         textbox.setText("0.0");
                     }
                 }

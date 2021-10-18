@@ -8,7 +8,6 @@ import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
-import java.util.Iterator;
 import java.util.List;
 
 public class RaytraceUtil {
@@ -68,77 +67,65 @@ public class RaytraceUtil {
     }
 
     public static Entity getClosestEntity(EntityLivingBase viewEntity, double parDistance) {
-        try {
-            parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
-            Entity Return = null;
-            double closest = parDistance;
-            if (viewEntity != null) {
-                World worldObj = viewEntity.world;
-                RayTraceResult objectMouseOver = rayTrace(viewEntity, parDistance);
-                Vec3d playerPosition = new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ);
-                if (objectMouseOver != null) {
-                    parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
-                }
+        parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
+        Entity result = null;
+        double distance = parDistance;
+        if (viewEntity != null) {
+            World world = viewEntity.world;
+            RayTraceResult target = rayTrace(viewEntity, parDistance);
+            Vec3d playerPosition = new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ);
+            if (target != null) {
+                parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
+            }
 
-                Vec3d dirVec = viewEntity.getLookVec();
-                Vec3d lookFarCoord = playerPosition.add(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance);
-                List targettedEntities = worldObj.getEntitiesWithinAABBExcludingEntity(viewEntity, viewEntity.getEntityBoundingBox().expand(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance));
-                Iterator var12 = targettedEntities.iterator();
+            Vec3d dirVec = viewEntity.getLookVec();
+            Vec3d lookFarCoord = playerPosition.add(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance);
+            List<Entity> targetedEntities = world.getEntitiesWithinAABBExcludingEntity(viewEntity, viewEntity.getEntityBoundingBox().expand(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance));
 
-                while (var12.hasNext()) {
-                    Entity targettedEntity = (Entity) var12.next();
-                    if (targettedEntity != null && !targettedEntity.isInvisible()) {
-                        double precheck = (double) viewEntity.getDistance(targettedEntity);
-                        RayTraceResult mopElIntercept = targettedEntity.getEntityBoundingBox().calculateIntercept(playerPosition, lookFarCoord);
-                        if (mopElIntercept != null && precheck < closest) {
-                            Return = targettedEntity;
-                            closest = precheck;
-                        }
+            for (Entity targetedEntity : targetedEntities) {
+                if (targetedEntity != null && !targetedEntity.isInvisible()) {
+                    double d = viewEntity.getDistance(targetedEntity);
+                    RayTraceResult mopElIntercept = targetedEntity.getEntityBoundingBox().calculateIntercept(playerPosition, lookFarCoord);
+                    if (mopElIntercept != null && d < distance) {
+                        result = targetedEntity;
+                        distance = d;
                     }
                 }
             }
-
-            return Return;
-        } catch (Throwable var17) {
-            return null;
         }
+
+        return result;
     }
 
     public static EntityLivingBase getClosestLivingEntity(EntityLivingBase viewEntity, double parDistance) {
-        try {
-            parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
-            EntityLivingBase Return = null;
-            double closest = parDistance;
-            if (viewEntity != null) {
-                World worldObj = viewEntity.world;
-                RayTraceResult objectMouseOver = rayTrace(viewEntity, parDistance);
-                Vec3d playerPosition = new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ);
-                if (objectMouseOver != null) {
-                    parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
-                }
+        parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
+        EntityLivingBase result = null;
+        double distance = parDistance;
+        if (viewEntity != null) {
+            World world = viewEntity.world;
+            RayTraceResult objectMouseOver = rayTrace(viewEntity, parDistance);
+            Vec3d playerPosition = new Vec3d(viewEntity.posX, viewEntity.posY + 1.5D, viewEntity.posZ);
+            if (objectMouseOver != null) {
+                parDistance = getDistanceToClosestSolidWall(viewEntity, parDistance);
+            }
 
-                Vec3d dirVec = viewEntity.getLookVec();
-                Vec3d lookFarCoord = playerPosition.add(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance);
-                List targettedEntities = worldObj.getEntitiesWithinAABB(EntityLivingBase.class, viewEntity.getEntityBoundingBox().expand(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance));
-                targettedEntities.remove(viewEntity);
-                Iterator var12 = targettedEntities.iterator();
+            Vec3d dirVec = viewEntity.getLookVec();
+            Vec3d lookFarCoord = playerPosition.add(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance);
+            List<EntityLivingBase> targetedEntities = world.getEntitiesWithinAABB(EntityLivingBase.class, viewEntity.getEntityBoundingBox().expand(dirVec.x * parDistance, dirVec.y * parDistance, dirVec.z * parDistance));
+            targetedEntities.remove(viewEntity);
 
-                while (var12.hasNext()) {
-                    EntityLivingBase targettedEntity = (EntityLivingBase) var12.next();
-                    if (targettedEntity != null && !targettedEntity.isInvisible()) {
-                        double precheck = (double) viewEntity.getDistance(targettedEntity);
-                        RayTraceResult mopElIntercept = targettedEntity.getEntityBoundingBox().calculateIntercept(playerPosition, lookFarCoord);
-                        if (mopElIntercept != null && precheck < closest) {
-                            Return = targettedEntity;
-                            closest = precheck;
-                        }
+            for (EntityLivingBase targetedEntity : targetedEntities) {
+                if (targetedEntity != null && !targetedEntity.isInvisible()) {
+                    double d = viewEntity.getDistance(targetedEntity);
+                    RayTraceResult mopElIntercept = targetedEntity.getEntityBoundingBox().calculateIntercept(playerPosition, lookFarCoord);
+                    if (mopElIntercept != null && d < distance) {
+                        result = targetedEntity;
+                        distance = d;
                     }
                 }
             }
-
-            return Return;
-        } catch (Throwable var17) {
-            return null;
         }
+
+        return result;
     }
 }

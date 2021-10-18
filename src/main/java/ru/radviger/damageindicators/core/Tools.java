@@ -62,11 +62,8 @@ public class Tools {
         Set<Class<? extends Entity>> set = theMap.keySet();
 
         for (Class<? extends Entity> entry : set) {
-            try {
-                if (entry != null && EntityLiving.class.isAssignableFrom(entry)) {
-                    entityMap.put(entry, EntityConfigurationEntry.generateDefaultConfiguration(config, entry));
-                }
-            } catch (Throwable ignored) {
+            if (entry != null && EntityLiving.class.isAssignableFrom(entry)) {
+                entityMap.put(entry, EntityConfigurationEntry.generateDefaultConfiguration(config, entry));
             }
         }
 

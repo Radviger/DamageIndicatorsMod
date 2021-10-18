@@ -38,8 +38,8 @@ public class GuiCheckBox extends GuiButton {
             try {
                 BufferedImage ex = ImageIO.read(Minecraft.class.getResourceAsStream("/assets/minecraft/textures/gui/widgets.png"));
                 DIGuiTools.widgetsPNG = new DynamicTexture(ex);
-            } catch (Throwable var7) {
-                var7.printStackTrace();
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
         }
 

@@ -14,6 +14,7 @@ import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry.EntityRegistration;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -118,10 +119,7 @@ public class EntityConfigurationEntry {
         String mod = "Vanilla";
         EntityRegistration er = EntityRegistry.instance().lookupModSpawn(ece.Clazz, true);
         if (er != null) {
-            try {
-                mod = er.getContainer().getMetadata().name.replaceAll(Pattern.quote("."), "");
-            } catch (Throwable ignored) {
-            }
+            mod = er.getContainer().getMetadata().name.replaceAll(Pattern.quote("."), "");
         }
 
         String CatagoryName = entry.getName();
@@ -138,7 +136,7 @@ public class EntityConfigurationEntry {
         float scaleFactor;
         try {
             scaleFactor = Float.parseFloat(prop.getString());
-        } catch (Throwable var23) {
+        } catch (NumberFormatException e) {
             System.err.println("Invalid or malformed configuration entry for " + prop.getName());
             scaleFactor = ece.ScaleFactor;
             prop.set(String.valueOf(22.0F));
@@ -155,7 +153,7 @@ public class EntityConfigurationEntry {
         float xOffset;
         try {
             xOffset = Float.parseFloat(prop.getString());
-        } catch (Throwable var22) {
+        } catch (NumberFormatException e) {
             System.err.println("Invalid or malformed configuration entry for " + prop.getName());
             prop.set(String.valueOf(ece.XOffset));
             xOffset = ece.XOffset;
@@ -166,7 +164,7 @@ public class EntityConfigurationEntry {
         float yOffset;
         try {
             yOffset = Float.parseFloat(prop.getString());
-        } catch (Throwable var21) {
+        } catch (NumberFormatException e) {
             System.err.println("Invalid or malformed configuration entry for " + prop.getName());
             prop.set(String.valueOf(ece.YOffset));
             yOffset = ece.YOffset;
@@ -177,7 +175,7 @@ public class EntityConfigurationEntry {
         float SizeModifier;
         try {
             SizeModifier = Float.parseFloat(prop.getString());
-        } catch (Throwable var20) {
+        } catch (NumberFormatException e) {
             System.err.println("Invalid or malformed configuration entry for " + prop.getName());
             prop.set(String.valueOf(ece.EntitySizeScaling));
             SizeModifier = ece.EntitySizeScaling;
@@ -188,7 +186,7 @@ public class EntityConfigurationEntry {
         float babyScaleFactor;
         try {
             babyScaleFactor = Float.parseFloat(prop.getString());
-        } catch (Throwable var19) {
+        } catch (NumberFormatException e) {
             System.err.println("Invalid or malformed configuration entry for " + prop.getName());
             prop.set(String.valueOf(ece.BabyScaleFactor));
             babyScaleFactor = ece.BabyScaleFactor;
@@ -203,7 +201,7 @@ public class EntityConfigurationEntry {
         try {
             configfile.createNewFile();
             return new Configuration(configfile);
-        } catch (Exception var2) {
+        } catch (IOException e) {
             if (configfile.exists()) {
                 if (!lasttimefailed) {
                     DamageIndicators.log.warn("Per mob configuration file was corrupt! Attempting to purge and recreate...");
@@ -218,7 +216,7 @@ public class EntityConfigurationEntry {
                     throw new RuntimeException("DIAdvancedCompatibility was currupt and was unable to recreate the file.");
                 }
             } else {
-                throw new RuntimeException("Exception while creating " + configfile.getAbsolutePath(), var2);
+                throw new RuntimeException("Exception while creating " + configfile.getAbsolutePath(), e);
             }
         }
     }
@@ -227,10 +225,7 @@ public class EntityConfigurationEntry {
         String mod = "Vanilla";
         EntityRegistration er = EntityRegistry.instance().lookupModSpawn(ece.Clazz, true);
         if (er != null) {
-            try {
-                mod = er.getContainer().getMetadata().name.replaceAll(Pattern.quote("."), "_");
-            } catch (Throwable ignored) {
-            }
+            mod = er.getContainer().getMetadata().name.replaceAll(Pattern.quote("."), "_");
         }
 
         String catagoryName = ece.Clazz.getName();

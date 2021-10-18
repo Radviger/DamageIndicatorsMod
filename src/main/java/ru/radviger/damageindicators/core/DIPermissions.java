@@ -19,22 +19,12 @@ public class DIPermissions implements IMessage {
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        try {
-            this.message = buf.readByte();
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-
+        message = buf.readByte();
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
-        try {
-            buf.writeByte(this.message);
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
-
+        buf.writeByte(message);
     }
 
     public static class Handler implements IMessageHandler<DIPermissions, IMessage> {

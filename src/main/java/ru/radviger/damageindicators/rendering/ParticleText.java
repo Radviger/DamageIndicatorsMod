@@ -72,19 +72,15 @@ public class ParticleText extends Particle {
             this.Damage = Math.abs(this.Damage);
         }
 
-        try {
-            int baseColor = this.heal ? config.healColor : config.DIColor;
-            this.red = (float) (baseColor >> 16 & 255) / 255.0F;
-            this.green = (float) (baseColor >> 8 & 255) / 255.0F;
-            this.blue = (float) (baseColor & 255) / 255.0F;
-            this.alpha = config.transparency * 0.9947F;
-            this.ul = ((float) this.Damage - (float) MathHelper.floor((float) this.Damage / 16.0F) * 16.0F) % 16.0F / 16.0F;
-            this.ur = this.ul + 0.0624375F;
-            this.vl = (float) MathHelper.floor((float) this.Damage / 16.0F) * 16.0F / 16.0F / 16.0F;
-            this.vr = this.vl + 0.0624375F;
-        } catch (Throwable ignored) {
-        }
-
+        int baseColor = this.heal ? config.healColor : config.DIColor;
+        this.red = (float) (baseColor >> 16 & 255) / 255.0F;
+        this.green = (float) (baseColor >> 8 & 255) / 255.0F;
+        this.blue = (float) (baseColor & 255) / 255.0F;
+        this.alpha = config.transparency * 0.9947F;
+        this.ul = ((float) this.Damage - (float) MathHelper.floor((float) this.Damage / 16.0F) * 16.0F) % 16.0F / 16.0F;
+        this.ur = this.ul + 0.0624375F;
+        this.vl = (float) MathHelper.floor((float) this.Damage / 16.0F) * 16.0F / 16.0F / 16.0F;
+        this.vr = this.vl + 0.0624375F;
     }
 
     @Override

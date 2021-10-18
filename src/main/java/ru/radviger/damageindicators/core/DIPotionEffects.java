@@ -25,33 +25,23 @@ public class DIPotionEffects implements IMessage {
 
     @Override
     public void fromBytes(ByteBuf buf) {
-        try {
-            this.entityID = buf.readInt();
-            int count = buf.readInt();
+        this.entityID = buf.readInt();
+        int count = buf.readInt();
 
-            for (int i = 0; i < count; ++i) {
-                this.potionEffects.add(new PotionEffect(Potion.getPotionById(buf.readInt()), buf.readInt()));
-            }
-        } catch (Throwable t) {
-            t.printStackTrace();
+        for (int i = 0; i < count; ++i) {
+            this.potionEffects.add(new PotionEffect(Potion.getPotionById(buf.readInt()), buf.readInt()));
         }
-
     }
 
     @Override
     public void toBytes(ByteBuf buf) {
-        try {
-            buf.writeInt(this.entityID);
-            buf.writeInt(this.potionEffects.size());
+        buf.writeInt(this.entityID);
+        buf.writeInt(this.potionEffects.size());
 
-            for (PotionEffect e : this.potionEffects) {
-                buf.writeInt(Potion.getIdFromPotion(e.getPotion()));
-                buf.writeInt(e.getDuration());
-            }
-        } catch (Throwable var3) {
-            var3.printStackTrace();
+        for (PotionEffect e : this.potionEffects) {
+            buf.writeInt(Potion.getIdFromPotion(e.getPotion()));
+            buf.writeInt(e.getDuration());
         }
-
     }
 
     public static class Handler implements IMessageHandler<DIPotionEffects, IMessage> {

@@ -1,16 +1,6 @@
 package ru.radviger.damageindicators.core;
 
-import ru.radviger.damageindicators.textures.AbstractSkin;
-import ru.radviger.damageindicators.textures.EnumSkinPart;
-import ru.radviger.damageindicators.DamageIndicators;
-import ru.radviger.damageindicators.client.ProxyClient;
-import ru.radviger.damageindicators.configuration.IndicatorsConfig;
-import ru.radviger.damageindicators.gui.DIGuiTools;
-import ru.radviger.damageindicators.gui.RepositionGui;
-import ru.radviger.damageindicators.rendering.ParticleText;
-import ru.radviger.damageindicators.util.RaytraceUtil;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.GuiChat;
 import net.minecraft.client.gui.ScaledResolution;
 import net.minecraft.client.renderer.OpenGlHelper;
@@ -36,9 +26,20 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import org.lwjgl.opengl.GL11;
+import ru.radviger.damageindicators.DamageIndicators;
+import ru.radviger.damageindicators.client.ProxyClient;
+import ru.radviger.damageindicators.configuration.IndicatorsConfig;
+import ru.radviger.damageindicators.gui.DIGuiTools;
+import ru.radviger.damageindicators.gui.RepositionGui;
+import ru.radviger.damageindicators.rendering.ParticleText;
+import ru.radviger.damageindicators.util.RaytraceUtil;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DIEventBus {
     public static Map<Integer, Integer> healths = new HashMap<>();
@@ -112,11 +113,7 @@ public class DIEventBus {
                 GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
                 if (el == null) {
                     tick -= elapsedTime;
-
-                    try {
-                        el = (EntityLivingBase) Minecraft.getMinecraft().world.getEntityByID(LastTargeted);
-                    } catch (Throwable ignored) {
-                    }
+                    el = (EntityLivingBase) Minecraft.getMinecraft().world.getEntityByID(LastTargeted);
 
                     if (el == null) {
                         LastTargeted = 0;
@@ -169,15 +166,7 @@ public class DIEventBus {
                 GL11.glTranslatef((1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locX, (1.0F - IndicatorsConfig.mainInstance().guiScale) * (float) IndicatorsConfig.mainInstance().locY, 0.0F);
                 GL11.glScalef(IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale, IndicatorsConfig.mainInstance().guiScale);
 
-                try {
-                    DIGuiTools.DrawPortraitSkinned(IndicatorsConfig.mainInstance().locX, IndicatorsConfig.mainInstance().locY, Name, MathHelper.ceil(el.getHealth()), MathHelper.ceil(el.getMaxHealth()), el);
-                    if (Calendar.getInstance().getWeekYear() + 3 > Calendar.getInstance().getWeeksInWeekYear()) {
-                        FontRenderer fontRenderer = Minecraft.getMinecraft().fontRenderer;
-                        int Y = (Integer) AbstractSkin.getActiveSkin().getSkinValue(EnumSkinPart.CONFIGFRAMEY) + 75;
-                        GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-                    }
-                } catch (Throwable ignored) {
-                }
+                DIGuiTools.DrawPortraitSkinned(IndicatorsConfig.mainInstance().locX, IndicatorsConfig.mainInstance().locY, Name, MathHelper.ceil(el.getHealth()), MathHelper.ceil(el.getMaxHealth()), el);
 
                 GL11.glPopMatrix();
                 OpenGlHelper.setClientActiveTexture(OpenGlHelper.lightmapTexUnit);
@@ -282,20 +271,18 @@ public class DIEventBus {
     }
 
     @SubscribeEvent
+    @SideOnly(Side.CLIENT)
     public void changeDimension(EntityJoinWorldEvent evt) {
         if (FMLCommonHandler.instance().getEffectiveSide().isClient()) {
-            try {
-                if (evt.getEntity() == Minecraft.getMinecraft().player) {
-                    potionEffects.clear();
-                    healths.clear();
-                    enemies.clear();
-                    playerDim = Minecraft.getMinecraft().player.dimension;
-                    playerName = Minecraft.getMinecraft().player.getName();
-                }
-            } catch (Throwable ignored) {
+            Minecraft mc = Minecraft.getMinecraft();
+            if (evt.getEntity() == mc.player) {
+                potionEffects.clear();
+                healths.clear();
+                enemies.clear();
+                playerDim = mc.player.dimension;
+                playerName = mc.player.getName();
             }
         }
-
     }
 
     @SubscribeEvent
@@ -363,8 +350,8 @@ public class DIEventBus {
 
                     try {
                         updateMouseOversSkinned(event.getPartialTicks());
-                    } catch (Throwable var9) {
-                        var9.printStackTrace();
+                    } catch (Throwable t) {
+                        t.printStackTrace();
                     }
 
                     if (IndicatorsConfig.mainInstance().highCompatibilityMod) {
@@ -372,8 +359,8 @@ public class DIEventBus {
                         GL11.glPopAttrib();
                     }
                 }
-            } catch (Throwable var10) {
-                var10.printStackTrace();
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
         }
 

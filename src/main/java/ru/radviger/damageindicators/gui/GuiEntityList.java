@@ -1,7 +1,5 @@
 package ru.radviger.damageindicators.gui;
 
-import ru.radviger.damageindicators.core.EntityConfigurationEntry;
-import ru.radviger.damageindicators.core.Tools;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.EntityOtherPlayerMP;
 import net.minecraft.client.renderer.Tessellator;
@@ -12,6 +10,8 @@ import net.minecraft.entity.monster.EntityMob;
 import net.minecraftforge.fml.client.GuiScrollingList;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
 import net.minecraftforge.fml.common.registry.EntityRegistry.EntityRegistration;
+import ru.radviger.damageindicators.core.EntityConfigurationEntry;
+import ru.radviger.damageindicators.core.Tools;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -52,40 +52,36 @@ public class GuiEntityList extends GuiScrollingList {
 
     @Override
     protected void drawSlot(int listIndex, int var2, int var3, int var4, Tessellator var5) {
-        try {
-            Map<Class<? extends Entity>, String> classToStringMapping = Tools.getEntityList();
-            String entryName = classToStringMapping.get(this.visibleEntities.get(listIndex).Clazz);
-            if (this.visibleEntities.get(listIndex).NameOverride != null && !"".equals(this.visibleEntities.get(listIndex).NameOverride)) {
-                entryName = this.visibleEntities.get(listIndex).NameOverride;
-            } else if (entryName == null || "".equals(entryName)) {
-                String[] ModName = this.visibleEntities.get(listIndex).Clazz.getName().split("\\.");
-                if (ModName.length > 0) {
-                    entryName = ModName[ModName.length - 1];
-                } else {
-                    entryName = this.visibleEntities.get(listIndex).Clazz.getName();
-                }
+        Map<Class<? extends Entity>, String> classToStringMapping = Tools.getEntityList();
+        String entryName = classToStringMapping.get(this.visibleEntities.get(listIndex).Clazz);
+        if (this.visibleEntities.get(listIndex).NameOverride != null && !"".equals(this.visibleEntities.get(listIndex).NameOverride)) {
+            entryName = this.visibleEntities.get(listIndex).NameOverride;
+        } else if (entryName == null || "".equals(entryName)) {
+            String[] ModName = this.visibleEntities.get(listIndex).Clazz.getName().split("\\.");
+            if (ModName.length > 0) {
+                entryName = ModName[ModName.length - 1];
+            } else {
+                entryName = this.visibleEntities.get(listIndex).Clazz.getName();
             }
-
-            if (this.visibleEntities.get(listIndex).Clazz == EntityOtherPlayerMP.class) {
-                entryName = "Other Player";
-            } else if (this.visibleEntities.get(listIndex).Clazz == EntityMob.class) {
-                this.visibleEntities.remove(listIndex);
-            } else if (this.visibleEntities.get(listIndex).Clazz == EntityLivingBase.class) {
-                this.visibleEntities.remove(listIndex);
-            } else if (this.visibleEntities.get(listIndex).Clazz == EntityLiving.class) {
-                this.visibleEntities.remove(listIndex);
-            }
-
-            this.parent.getFontRenderer().drawString(this.parent.getFontRenderer().trimStringToWidth(entryName, this.listWidth - 10), this.left + 3, var3 + 2, 16777215);
-            String ModName1 = "Vanilla/Unknown Mod";
-            EntityRegistration er = EntityRegistry.instance().lookupModSpawn(this.visibleEntities.get(listIndex).Clazz, true);
-            if (er != null) {
-                ModName1 = er.getContainer().getName();
-            }
-
-            this.parent.getFontRenderer().drawString(this.parent.getFontRenderer().trimStringToWidth(ModName1, this.listWidth - 10), this.left + 3, var3 + 12, 10066431);
-        } catch (Throwable ignored) {
         }
 
+        if (this.visibleEntities.get(listIndex).Clazz == EntityOtherPlayerMP.class) {
+            entryName = "Other Player";
+        } else if (this.visibleEntities.get(listIndex).Clazz == EntityMob.class) {
+            this.visibleEntities.remove(listIndex);
+        } else if (this.visibleEntities.get(listIndex).Clazz == EntityLivingBase.class) {
+            this.visibleEntities.remove(listIndex);
+        } else if (this.visibleEntities.get(listIndex).Clazz == EntityLiving.class) {
+            this.visibleEntities.remove(listIndex);
+        }
+
+        this.parent.getFontRenderer().drawString(this.parent.getFontRenderer().trimStringToWidth(entryName, this.listWidth - 10), this.left + 3, var3 + 2, 16777215);
+        String ModName1 = "Vanilla/Unknown Mod";
+        EntityRegistration er = EntityRegistry.instance().lookupModSpawn(this.visibleEntities.get(listIndex).Clazz, true);
+        if (er != null) {
+            ModName1 = er.getContainer().getName();
+        }
+
+        this.parent.getFontRenderer().drawString(this.parent.getFontRenderer().trimStringToWidth(ModName1, this.listWidth - 10), this.left + 3, var3 + 12, 10066431);
     }
 }

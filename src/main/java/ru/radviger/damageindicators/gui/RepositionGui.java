@@ -422,7 +422,8 @@ public class RepositionGui extends GuiScreen {
                         this.drawGradient(this.config.healColor >> 16 & 255, this.config.healColor >> 8 & 255, this.config.healColor & 255);
                     }
                 }
-            } catch (Throwable var8) {
+            } catch (Throwable t) {
+                t.printStackTrace();
             }
 
             if (par1 >= this.config.locX - 1 && par1 <= this.config.locX + 137 && par2 >= this.config.locY - 1 && par2 <= this.config.locY + 52) {

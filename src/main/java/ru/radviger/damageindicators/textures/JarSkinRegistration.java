@@ -95,11 +95,11 @@ public class JarSkinRegistration extends AbstractSkin {
                     juc.setDoOutput(false);
                     juc.setAllowUserInteraction(true);
                     juc.connect();
-                    Enumeration jEnum = juc.getJarFile().entries();
+                    Enumeration<JarEntry> jEnum = juc.getJarFile().entries();
 
                     while (jEnum.hasMoreElements()) {
                         try {
-                            checkEntry((JarEntry) jEnum.nextElement());
+                            checkEntry(jEnum.nextElement());
                         } catch (Exception ignored) {
                         }
                     }
@@ -107,7 +107,8 @@ public class JarSkinRegistration extends AbstractSkin {
                     giveDebuggingInfo(test);
                 }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         if (!AbstractSkin.AVAILABLESKINS.contains("/assets/defaultskins/default/")) {
